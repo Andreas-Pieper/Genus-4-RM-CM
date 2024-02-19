@@ -40,7 +40,10 @@ function ModuliToBigPeriodMatrixNoam(F, points)
 end function;
 
 // construct original curve
-AttachSpec("spec");
+// TODO add reconstruction-g4 as a git submodule
+AttachSpec("~/github/reconstructing-g4/magma/spec");
+SetVerbose("Reconstruction",true);
+SetDebugOnError(true);
 prec := 100;
 g := 4;
 CC<I> := ComplexFieldExtra(prec);
@@ -53,9 +56,15 @@ Pi1 := Submatrix(Pi,g,g,1,1);
 Pi2 := Submatrix(Pi,g,g,1,g+1);
 _<t> := PolynomialRing(QQ);
 roots := [el[1] : el in Roots(t^4 - t^3 - 4*t^2 + 4*t + 1, CC)];
-taus := [-r^4 - 3*r^2 + 2*r + 13/2 - (4*r^3 + 2*r^2 - 13*r - 7/2)*Sqrt(CC!-3) : r in roots];
+taus := [-r^3 - 3*r^2 + 2*r + 13/2 - (4*r^3 + 2*r^2 - 13*r - 7/2)*Sqrt(CC!-3) : r in roots];
 taus[4] := ComplexConjugate(taus[4]);
+taus := [2*el : el in taus]; // 2-isogeny
 F<nu> := NumberFieldExtra(t^4 - t^3 - 4*t^2 + 4*t + 1);
 Pi_taus := ModuliToBigPeriodMatrixNoam(F,taus);
 Pi_taus1 := Submatrix(Pi_taus,g,g,1,1);
 Pi_taus2 := Submatrix(Pi_taus,g,g,1,g+1);
+Pi_taus_small := -SmallPeriodMatrix(Pi_taus);
+Pi_taus_small := SiegelReduction(Pi_taus_small);
+printf "Schottky modular form = %o\n", SchottkyModularForm(Pi_taus_small);
+print "attempting to reconstruct curve";
+ReconstructCurveG4(Pi_taus_small);
