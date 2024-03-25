@@ -36,7 +36,7 @@ function ModuliToBigPeriodMatrixNoam(F, points)
     betas := [[CC | Evaluate(B[i], pl : Precision := prec+10) : pl in InfinitePlaces(F)] : i in [1..g]];
     Pi1 := Transpose(Matrix(CC, betas));
     Pi2 := DiagonalMatrix(points)*(Transpose(Pi1)^-1);
-    return HorizontalJoin(Pi1, Pi2);
+    return HorizontalJoin(Pi2, Pi1);
 end function;
 
 // construct original curve
@@ -63,11 +63,19 @@ F<nu> := NumberFieldExtra(t^4 - t^3 - 4*t^2 + 4*t + 1);
 Pi_taus := ModuliToBigPeriodMatrixNoam(F,taus);
 Pi_taus1 := Submatrix(Pi_taus,1,1,g,g);
 Pi_taus2 := Submatrix(Pi_taus,1,g+1,g,g);
-Pi_taus_small := -SmallPeriodMatrix(Pi_taus);
-Pi_taus_small := SiegelReduction(Pi_taus_small);
+//Pi_taus_small := -SmallPeriodMatrix(Pi_taus);
+Pi_taus_small_1 := Pi_taus1^-1*Pi_taus2;
+Pi_taus_small_2 := Pi_taus2^-1*Pi_taus1;
+Pi_taus_smalls := [Pi_taus_small_1, Pi_taus_small_2];
+//Pi_taus_small := SiegelReduction(Pi_taus_small);
 //printf "Schottky modular form = %o\n", SchottkyModularForm(Pi_taus_small);
-thetas := ComputeThetas(Pi_taus_small);
-[2^-g*&+[t^(8*n) : t in thetas] : n in [1..6]];
+pts := [];
+for P in Pi_taus_smalls do
+  thetas := ComputeThetas(P);
+  pt := [2^-g*&+[t^(8*n) : t in thetas] : n in [1..6]];
+  pt := WPSMultiply([1..6], WPSNormalize([1..6], pt), 50625);
+  Append(~pts, pt);
+end for;
 //print "attempting to reconstruct curve";
 //ReconstructCurveG4(Pi_taus_small);
 //
