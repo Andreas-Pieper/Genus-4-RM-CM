@@ -25,6 +25,10 @@
 AttachSpec("~/github/CHIMP/CHIMP.spec");
 AttachSpec("~/github/reconstructing-g4/magma/spec");
 Attach("~/github/Genus-4-RM-CM/maximal-isotropic.m");
+AttachSpec("~/github/Genus-4/magma/spec");
+// TODO: Fix Flint theta port
+//Attach("~/github/Genus-4-RM-CM/FlintWrapper.m");
+//Attach("~/github/Genus-4-RM-CM/schottky-fast-theta.m");
 // Given a totally real field F of degree g and a g-tuple of points in the upper half-plane, return the corresponding big period matrix
 function ModuliToBigPeriodMatrixNoam(F, points)
 //intrinsic ModuliToBigPeriodMatrixNoam(F, points) -> AlgMatElt
@@ -82,5 +86,17 @@ Pi_big := BigPeriodMatrix(S);
 Pi1 := Submatrix(Pi_big,1,1,g,g);
 Pi2 := Submatrix(Pi_big,1,g+1,g,g);
 //Pi_big_swap := HorizontalJoin(Pi2,Pi1);
-Pi_big_swap := HorizontalJoin(Pi1,Pi2);
-RationalReconstructCurveG4(Pi_big_swap);
+P := HorizontalJoin(Pi1,Pi2);
+torsion := maximal_isotropic(4,2);
+jacobians := [];
+for i->V in torsion do
+  Q := QFromPVFor4(P, V);
+  Q1 := Submatrix(Q,1,1,g,g);
+  Q2 := Submatrix(Q,1,g+1,g,g);
+  Q_sm := Q1^-1*Q2;
+  s := SchottkyModularForm(Q_sm : prec := 30);
+  printf "subgroup %o had size %o\n", i, Abs(s);
+  if Abs(s) lt 10^-20 then
+    Append(~jacobians, [* i, V *]);
+  end if;
+end for;

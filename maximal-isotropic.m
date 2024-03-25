@@ -33,8 +33,43 @@ intrinsic maximal_isotropic(n::RngIntElt, p::RngIntElt) -> SeqEnum
 			for nu in [1..d] do
 				X[entries[nu][1], entries[nu][2]] := k[nu];
 			end for;
-			Append(~ret, X);
+			Append(~ret, Image(X));
 			end for;
 	end for;
 	return ret;
 end intrinsic;
+
+function LiftFF(c, n)
+  return (Integers() ! c)/n;
+end function;
+
+function StandardSymplecticMatrix(g)
+  id:=IdentityMatrix(Integers(), g);
+  zer:=ZeroMatrix(Integers(), g,g);
+  J:=BlockMatrix(2,2, [[zer, id], [-id, zer]]);
+  return J;
+end function;
+
+intrinsic QFromPVFor4(P::ModMatFldElt, V::ModTupFld)-> Any
+  {Creates quotient of abelian variety corresponding to P by symplectic subgroup corresponding to V}
+
+  p := Characteristic(BaseRing(V));
+  L1 := Lattice(IdentityMatrix(Rationals(), 8));
+  M2 := Matrix(Basis(V));
+  M2 := Matrix(Rationals(), #Rows(M2), #Rows(Transpose(M2)), [ LiftFF(c, p) : c in Eltseq(M2) ]);
+  L2 := Lattice(M2);
+  L := L1 + L2;
+  T := Matrix(Basis(L));
+
+  E3 := StandardSymplecticMatrix(4);
+  T1 := Transpose(T);
+  E := Transpose(T1)*E3*T1;
+
+  E0, T2 := FrobeniusFormAlternating(ChangeRing(p*E, Integers()));
+  BT := T1*Transpose(T2);
+
+  Q := P*ChangeRing(BT, BaseRing(P));
+  //assert IsBigPeriodMatrix(Q);
+  return Q;
+end intrinsic;
+
