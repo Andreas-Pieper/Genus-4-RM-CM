@@ -1,4 +1,5 @@
-function maximal_isotropic(n, p)
+intrinsic maximal_isotropic(n::RngIntElt, p::RngIntElt) -> SeqEnum
+  {}
 	set := [1..n] cat [2*n..n by -1];
 	ret := [];
 	for v in VectorSpace(GF(2), n) do
@@ -36,4 +37,4 @@ function maximal_isotropic(n, p)
 			end for;
 	end for;
 	return ret;
-end function;
+end intrinsic;
