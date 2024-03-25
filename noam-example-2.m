@@ -23,6 +23,8 @@
 // copied from 17T7 project
 
 AttachSpec("~/github/CHIMP/CHIMP.spec");
+AttachSpec("~/github/reconstructing-g4/magma/spec");
+Attach("~/github/Genus-4-RM-CM/maximal-isotropic.m");
 // Given a totally real field F of degree g and a g-tuple of points in the upper half-plane, return the corresponding big period matrix
 function ModuliToBigPeriodMatrixNoam(F, points)
 //intrinsic ModuliToBigPeriodMatrixNoam(F, points) -> AlgMatElt
@@ -41,13 +43,13 @@ end function;
 
 // construct original curve
 // TODO add reconstruction-g4 as a git submodule
-AttachSpec("~/github/reconstructing-g4/magma/spec");
 SetVerbose("Reconstruction",true);
 SetDebugOnError(true);
 prec := 100;
 g := 4;
 CC<I> := ComplexFieldExtra(prec);
 R<x,y> := PolynomialRing(QQ,2);
+/*
 f := y^3-(x^5+1);
 //C := Curve(Spec(R), y^3-(x^5+1));
 S := RiemannSurface(f : Precision := prec);
@@ -61,29 +63,24 @@ taus[4] := ComplexConjugate(taus[4]);
 //taus := [2*el : el in taus]; // 2-isogeny
 F<nu> := NumberFieldExtra(t^4 - t^3 - 4*t^2 + 4*t + 1);
 Pi_taus := ModuliToBigPeriodMatrixNoam(F,taus);
-Pi_taus1 := Submatrix(Pi_taus,1,1,g,g);
-Pi_taus2 := Submatrix(Pi_taus,1,g+1,g,g);
+Pi_taus := Submatrix(Pi_taus,1,g+1,g,g);
 //Pi_taus_small := -SmallPeriodMatrix(Pi_taus);
-Pi_taus_small_1 := Pi_taus1^-1*Pi_taus2;
-Pi_taus_small_2 := Pi_taus2^-1*Pi_taus1;
-Pi_taus_smalls := [Pi_taus_small_1, Pi_taus_small_2];
+Pi_taus_small := Pi_taus2^-1*Pi_taus1;
 //Pi_taus_small := SiegelReduction(Pi_taus_small);
 //printf "Schottky modular form = %o\n", SchottkyModularForm(Pi_taus_small);
-pts := [];
-for P in Pi_taus_smalls do
-  thetas := ComputeThetas(P);
-  pt := [2^-g*&+[t^(8*n) : t in thetas] : n in [1..6]];
-  pt := WPSMultiply([1..6], WPSNormalize([1..6], pt), 50625);
-  Append(~pts, pt);
-end for;
+thetas := ComputeThetas(Pi_taus_small);
+pt := [2^-g*&+[t^(8*n) : t in thetas] : n in [1..6]];
+pt := WPSMultiply([1..6], WPSNormalize([1..6], pt), 50625);
 //print "attempting to reconstruct curve";
 //ReconstructCurveG4(Pi_taus_small);
 //
+*/
 f := y^3 - (x^5+1);
 S := RiemannSurface(f : Precision := prec);
 Pi_small := SmallPeriodMatrix(S);
 Pi_big := BigPeriodMatrix(S);
 Pi1 := Submatrix(Pi_big,1,1,g,g);
 Pi2 := Submatrix(Pi_big,1,g+1,g,g);
-Pi_big_swap := HorizontalJoin(Pi2,Pi1);
+//Pi_big_swap := HorizontalJoin(Pi2,Pi1);
+Pi_big_swap := HorizontalJoin(Pi1,Pi2);
 RationalReconstructCurveG4(Pi_big_swap);
