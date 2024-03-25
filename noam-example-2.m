@@ -26,13 +26,14 @@ AttachSpec("~/github/CHIMP/CHIMP.spec");
 AttachSpec("~/github/reconstructing-g4/magma/spec");
 Attach("~/github/Genus-4-RM-CM/maximal-isotropic.m");
 AttachSpec("~/github/Genus-4/magma/spec");
+AttachSpec("~/github/Reconstruction/magma/spec");
 // TODO: Fix Flint theta port
 //Attach("~/github/Genus-4-RM-CM/FlintWrapper.m");
 //Attach("~/github/Genus-4-RM-CM/schottky-fast-theta.m");
 // Given a totally real field F of degree g and a g-tuple of points in the upper half-plane, return the corresponding big period matrix
 function ModuliToBigPeriodMatrixNoam(F, points)
 //intrinsic ModuliToBigPeriodMatrixNoam(F, points) -> AlgMatElt
-//{ Modified version of the ModiliToBigPeriodMatrix. }
+//{ Modified version of the ModuliToBigPeriodMatrix. }
     prec := Min([Precision(Parent(elt)) : elt in points]);
     CC := ComplexFieldExtra(prec);
     //assert &and[Abs(Re(p)) lt CC`epscomp : p in points];
@@ -48,6 +49,7 @@ end function;
 // construct original curve
 // TODO add reconstruction-g4 as a git submodule
 SetVerbose("Reconstruction",true);
+SetVerbose("Theta",true);
 SetDebugOnError(true);
 prec := 100;
 g := 4;
@@ -100,3 +102,16 @@ for i->V in torsion do
     Append(~jacobians, [* i, V *]);
   end if;
 end for;
+/*
+V := torsion[15];
+Q := QFromPVFor4(P, V);
+Q1 := Submatrix(Q,1,1,g,g);
+Q2 := Submatrix(Q,1,g+1,g,g);
+Q_sm := Q1^-1*Q2;
+s := SchottkyModularForm(Q_sm : prec := 80);
+s;
+*/
+
+
+
+//InvariantsGenus4Curves(quadric,cubic : normalize := true);
