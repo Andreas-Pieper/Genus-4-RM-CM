@@ -102,6 +102,31 @@ for i->V in torsion do
     Append(~jacobians, [* i, V *]);
   end if;
 end for;
+
+curves_CC := [];
+invs_CC := [];
+for pair in jacobians do
+  i, V := Explode(pair);
+  assert torsion[i] eq V;
+  Q := QFromPVFor4(P, V);
+  Q1 := Submatrix(Q,1,1,g,g);
+  Q2 := Submatrix(Q,1,g+1,g,g);
+  Q_sm := Q1^-1*Q2;
+  C_CC := ReconstructCurveG4(Q_sm);
+  Append(~curves_CC, C_CC);
+  invs, wts := InvariantsGenus4Curves(C_CC[1], C_CC[2] : normalize := true);
+  Append(~invs_CC, [* invs, wts *]);
+end for;
+
+invs := [];
+for pair in invs_CC do
+  inv_CC, wt := Explode(pair);
+  inv := [b where _, b := RationalReconstruction(el) : el in inv_CC];
+  Append(~invs, [* inv, wt *]);
+end for;
+
+curves := [];
+
 /*
 V := torsion[15];
 Q := QFromPVFor4(P, V);
