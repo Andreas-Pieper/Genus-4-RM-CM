@@ -122,10 +122,17 @@ invs := [];
 for pair in invs_CC do
   inv_CC, wt := Explode(pair);
   inv := [b where _, b := RationalReconstruction(el) : el in inv_CC];
+  inv := WPSMinimize(wt, inv);
   Append(~invs, [* inv, wt *]);
 end for;
 
+//ReconstructionGenus4(invs[1][1]);
+// Not implemented yet :(
+
 curves := [];
+
+import "~/github/Reconstruction/magma/reconstruction_genus4.m": ReconstructionGenus4Rank3;
+
 
 /*
 V := torsion[15];
