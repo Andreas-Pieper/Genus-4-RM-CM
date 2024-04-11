@@ -1,7 +1,24 @@
+function RealPart(A)
+  return Matrix(Nrows(A), Ncols(A), [[Real(A[i,j]) : j in [1..Ncols(A)]] : i in [1..Nrows(A)]]);
+end function;
+
+
+
+
 function AutoAction()
   R<x> := PolynomialRing(Rationals());
   S := RiemannSurface(x^3-1, 5);
-  Chains, IntMat, Sympl := HomologyBasis(S);
+  holo := HolomorphicDifferentials(S);
+  CMtype := [-5-5*om[1]+3*om[2]: om in holo];
+  X := DiagonalMatrix([Evaluate(K.1^i, plK[1]): i in CMtype ]);
+  XR := BlockMatrix(2,2, [RealPart(X), RealPart((-CC.1)*X), RealPart((CC.1)*X), RealPart(X)]);
+  XZappr := PiR^-1*ChangeRing(XR, CoefficientRing(PiR))*PiR;
+  XZ := Matrix(8,8, [Round(el): el in Eltseq(XZappr)]);
+  return XZ, S;
+
+
+
+/*  Chains, IntMat, Sympl := HomologyBasis(S);
   Rams := [Coordinates(ram)[1]: ram in RamificationPoints(S)];
   EdgesList := [edge`EP: edge in Chains`Edges];
   i0:= &meet [Seqset(S): S in EdgesList];
@@ -26,12 +43,13 @@ function AutoAction()
        ret :=  Y;
     end if;
   end for;
-  return Transpose(Sympl)^-1 *  ret * Transpose(Sympl), S;
+  return Transpose(Sympl)^-1 *  ret * Transpose(Sympl), S;*/
 end function;
 
 // copy pasta
 /*
 load "auto-action.m";
+
 M, S := AutoAction();
 Pi := BigPeriodMatrix(S);
 K<z> := CyclotomicField(15);
@@ -39,6 +57,17 @@ OK := Integers(K);
 D := Different(OK);
 Dinv := D^-1;
 Kre, res := sub< K | K.1+ComplexConjugate(K.1) >;
+function foo(x,y)
+	return Sign(Real(Evaluate(Kre.1,x) - Evaluate(Kre.1, y)));
+end function;
+plK := InfinitePlaces(K);
+assert [Sign(Imaginary(Evaluate(K.1, p))): p in plK] eq [1,1,1,1];
+plKre := InfinitePlaces(Kre);
+Sort(~plK, foo);
+Sort(~plKre, foo);
+
+
+
 OKre := Integers(Kre);
 Dre := Different(OKre);
 Dreinv := Dre^-1;
@@ -52,8 +81,8 @@ Pair := Matrix(8,8,Pair);
 id4 := IdentityMatrix(Integers(), 4);
 zer := ZeroMatrix(Integers(), 4,4);
 J := BlockMatrix([[zer, id4], [-id4, zer]]);
-v:= Vector([(J*M^i)[1,1]: i in [0..7]]);
-X:= Matrix([[Integers()!Trace(K.1^(-i)*OK.j*d_new): i in [0..7]]: j in [1..8] ]);
+v:= Vector([(J*M^i)[2,2]: i in [0..7]]);
+X:= Matrix([[Integers()!Trace(K.1^(i)*OK.j*d_new): i in [0..7]]: j in [1..8] ]);
 sol := v*X^-1;
 nrm := OK!Eltseq(sol);
 
