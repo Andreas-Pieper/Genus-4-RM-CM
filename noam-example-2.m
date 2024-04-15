@@ -51,35 +51,35 @@ end function;
 SetVerbose("Reconstruction",true);
 SetVerbose("Theta",true);
 SetDebugOnError(true);
-prec := 100;
+prec := 300;
 g := 4;
 CC<I> := ComplexFieldExtra(prec);
 R<x,y> := PolynomialRing(QQ,2);
 /*
-f := y^3-(x^5+1);
-//C := Curve(Spec(R), y^3-(x^5+1));
-S := RiemannSurface(f : Precision := prec);
-Pi := BigPeriodMatrix(S);
-Pi1 := Submatrix(Pi,1,1,g,g);
-Pi2 := Submatrix(Pi,1,g+1,g,g);
-_<t> := PolynomialRing(QQ);
-roots := [el[1] : el in Roots(t^4 - t^3 - 4*t^2 + 4*t + 1, CC)];
-taus := [-r^3 - 3*r^2 + 2*r + 13/2 - (4*r^3 + 2*r^2 - 13*r - 7/2)*Sqrt(CC!-3) : r in roots];
-taus[4] := ComplexConjugate(taus[4]);
-//taus := [2*el : el in taus]; // 2-isogeny
-F<nu> := NumberFieldExtra(t^4 - t^3 - 4*t^2 + 4*t + 1);
-Pi_taus := ModuliToBigPeriodMatrixNoam(F,taus);
-Pi_taus := Submatrix(Pi_taus,1,g+1,g,g);
-//Pi_taus_small := -SmallPeriodMatrix(Pi_taus);
-Pi_taus_small := Pi_taus2^-1*Pi_taus1;
-//Pi_taus_small := SiegelReduction(Pi_taus_small);
-//printf "Schottky modular form = %o\n", SchottkyModularForm(Pi_taus_small);
-thetas := ComputeThetas(Pi_taus_small);
-pt := [2^-g*&+[t^(8*n) : t in thetas] : n in [1..6]];
-pt := WPSMultiply([1..6], WPSNormalize([1..6], pt), 50625);
-//print "attempting to reconstruct curve";
-//ReconstructCurveG4(Pi_taus_small);
-//
+  f := y^3-(x^5+1);
+  //C := Curve(Spec(R), y^3-(x^5+1));
+  S := RiemannSurface(f : Precision := prec);
+  Pi := BigPeriodMatrix(S);
+  Pi1 := Submatrix(Pi,1,1,g,g);
+  Pi2 := Submatrix(Pi,1,g+1,g,g);
+  _<t> := PolynomialRing(QQ);
+  roots := [el[1] : el in Roots(t^4 - t^3 - 4*t^2 + 4*t + 1, CC)];
+  taus := [-r^3 - 3*r^2 + 2*r + 13/2 - (4*r^3 + 2*r^2 - 13*r - 7/2)*Sqrt(CC!-3) : r in roots];
+  taus[4] := ComplexConjugate(taus[4]);
+  //taus := [2*el : el in taus]; // 2-isogeny
+  F<nu> := NumberFieldExtra(t^4 - t^3 - 4*t^2 + 4*t + 1);
+  Pi_taus := ModuliToBigPeriodMatrixNoam(F,taus);
+  Pi_taus := Submatrix(Pi_taus,1,g+1,g,g);
+  //Pi_taus_small := -SmallPeriodMatrix(Pi_taus);
+  Pi_taus_small := Pi_taus2^-1*Pi_taus1;
+  //Pi_taus_small := SiegelReduction(Pi_taus_small);
+  //printf "Schottky modular form = %o\n", SchottkyModularForm(Pi_taus_small);
+  thetas := ComputeThetas(Pi_taus_small);
+  pt := [2^-g*&+[t^(8*n) : t in thetas] : n in [1..6]];
+  pt := WPSMultiply([1..6], WPSNormalize([1..6], pt), 50625);
+  //print "attempting to reconstruct curve";
+  //ReconstructCurveG4(Pi_taus_small);
+  //
 */
 f := y^3 - (x^5+1);
 S := RiemannSurface(f : Precision := prec);
@@ -100,6 +100,7 @@ for i->V in torsion do
   printf "subgroup %o had size %o\n", i, Abs(s);
   if Abs(s) lt 10^-20 then
     Append(~jacobians, [* i, V *]);
+    break;
   end if;
 end for;
 
@@ -112,11 +113,59 @@ for pair in jacobians do
   Q1 := Submatrix(Q,1,1,g,g);
   Q2 := Submatrix(Q,1,g+1,g,g);
   Q_sm := Q1^-1*Q2;
-  C_CC := ReconstructCurveG4(Q_sm);
+  Q_red, M := SiegelReduction(Q_sm);
+  C_CC := ReconstructCurveG4(Q_red);
   Append(~curves_CC, C_CC);
   invs, wts := InvariantsGenus4Curves(C_CC[1], C_CC[2] : normalize := true);
   Append(~invs_CC, [* invs, wts *]);
 end for;
+
+quadric, cubic := Explode(curves_CC[1]);
+invs_old, wts := InvariantsGenus4Curves(quadric, cubic);
+lambda := (1/invs_old[1])^(1/wts[1]);
+invs := WPSMultiply(wts, invs_old, lambda);
+m, err :=  MinimalPolynomial(invs[2], 2);
+Polredabs(m);
+K<nu> := NumberField(Polredabs(m));
+OK := Integers(K);
+basis := Basis(OK);
+v := InfinitePlaces(K)[1];
+basis_CC := [CC!Evaluate(el, v : Precision := prec) : el in basis];
+
+ps := [];
+es := [];
+invs_K := [];
+for i->inv in invs do
+  printf "ps = %o, es = %o\n", ps, es;
+  scale := (&*[Integers() | ps[k]^(Ceiling(es[k]*wts[i])) : k in [1..#ps]]);
+  inv_scaled := inv*scale;
+  rel := IntegerRelation(basis_CC cat [inv_scaled]);
+  printf "Integer relation found %o\n", rel;
+  d := rel[#rel];
+  print "Factoring";
+  fact := Factorization(d);
+  for pair in fact do
+    p, e := Explode(pair);
+    e_new := e/wts[i];
+    if p in ps then
+      j := Index(ps, p);
+      es[j] := Maximum([es[j], e_new]);
+    else
+      Append(~ps,p);
+      Append(~es, e_new);
+    end if;
+  end for;
+  inv_K := (-1/d)*&+[rel[i]*basis[i] : i in [1..#basis]];
+  inv_K /:= scale;
+  printf "Invariant recognized: %o\n", inv_K;
+  Append(~invs_K, inv_K);
+end for;
+
+/*
+inv_K;
+Evaluate(inv_K, v);
+invs_new[2];
+*/
 
 invs := [];
 for pair in invs_CC do
