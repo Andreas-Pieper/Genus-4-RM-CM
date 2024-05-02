@@ -137,19 +137,26 @@ es := [];
 invs_K := [];
 for i->inv in invs do
   printf "ps = %o, es = %o\n", ps, es;
-  scale := (&*[Integers() | ps[k]^(Ceiling(es[k]*wts[i])) : k in [1..#ps]]);
-  inv_scaled := inv*scale;
-  rel := IntegerRelation(basis_CC cat [inv_scaled]);
+  scale := (&*[Integers() | ps[k]^(Round(es[k] * wts[i])) : k in [1..#ps]]);
+  inv_scaled := inv * scale;
+  rel := IntegerRelation(basis_CC cat [inv_scaled], 10^20);
   printf "Integer relation found %o\n", rel;
   d := rel[#rel];
   print "Factoring";
   fact := Factorization(d);
+  psd := [[p, j]: j->p in ps| not IsDivisibleBy(d, p)];
+  for pind in psd do
+      p, j := Explode(pind);
+      exp := Min([Valuation(rel[1], p), Valuation(rel[2], p)]);
+      e_new := (Round(es[j] * wts[i]) - exp)/ wts[i];
+      es[j] := Max([es[j], e_new]);
+  end for;
   for pair in fact do
     p, e := Explode(pair);
     e_new := e/wts[i];
     if p in ps then
       j := Index(ps, p);
-      es[j] := Maximum([es[j], e_new]);
+      es[j] := Round(es[j] * wts[i]) / wts[i] + e_new;
     else
       Append(~ps,p);
       Append(~es, e_new);

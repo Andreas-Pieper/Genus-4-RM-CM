@@ -1,6 +1,7 @@
 CC<I> := ComplexField(100);
 CC4<X,Y,Z,T> := PolynomialRing(CC, 4);
 
+AttachSpec("Genus-4/magma/spec");
 import "Genus-4/magma/Invariants_genus_4.m" : ChangeOfBasis, CubicNewBasis, InvariantsGenus4CurvesRank3;
 import "Genus-4-RM-CM/PotentialCMCurves.m" : Eqs;
 
