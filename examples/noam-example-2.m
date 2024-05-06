@@ -203,3 +203,67 @@ s;
 
 
 //InvariantsGenus4Curves(quadric,cubic : normalize := true);
+
+AttachSpec("~/github/CHIMP/CHIMP.spec");
+P3 := ProjectiveSpace(RationalsExtra(), 3);
+_<X,Y,Z,T> := CoordinateRing(P3);
+Q1 := X*Z - Y^2;
+E1 := -3/20*T^3 + T*(X^2 - 9*X*Z + 9*Y*Z + 27*Z^2) + (X^3 - 15*X^2*Z + 45*X*Z^2 + 18*Y*Z^2 + 135*Z^3);
+C := Curve(P3, [Q1, E1]);
+
+// computing endomorphism ring
+// non-maximal order of QQ(zeta15)
+/*
+E := GeometricEndomorphismRepresentation(C);
+ends := [E[j][2] : j in [1..#E]];
+ends;
+for el in ends do
+  print MinimalPolynomial(el);
+end for;
+[ChangeRing(el, ZZ) : el in ends];
+ends_ZZ := $1;
+M := Matrix([Eltseq(el) : el in ends_ZZ]);
+D, P, Q := SmithForm(M);
+D;
+P;
+Q;
+for el in ends do
+for el in ends_ZZ do
+for el in ends_ZZ do
+MinimalPolynomial(el);
+end for;
+for el in ends_ZZ do
+Polredabs(MinimalPolynomial(el));
+end for;
+$1[1];
+MinimalPolynomial(ends_ZZ[#ends_ZZ]);
+m := $1;
+K<nu> := NumberField(m);
+K;
+Factorization(ChangeRing(m,K));
+
+MinimalPolynomial(ends_ZZ[#ends_ZZ]);
+m := $1;
+K<nu> := NumberField(m);
+K;
+Factorization(ChangeRing(m,K));
+MinimalPolynomial(ends_ZZ[2]);
+Roots($1,K);
+Discriminant(m);
+Factorization($1);
+MinimalPolynomial(ends_ZZ[#ends_ZZ]);
+m := $1;
+Discriminant(m);
+Factorization($1);
+O := EquationOrder(m);
+UnitGroup(O);
+ClassGroup(O);
+PicardGroup(O);
+GorensteinIndex;
+IsGorenstein;
+D := Different(O);
+Conductor(O);
+c := $1;
+Norm(c);
+IsPrincipal(c);
+*/
