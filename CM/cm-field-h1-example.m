@@ -6,9 +6,13 @@ Attach("findg4.m");
 SetVerbose("CMExp",2);
 SetVerbose("Reconstruction",true);
 SetVerbose("Theta",true);
+SetDebugOnError(true);
 
-prec := 100;
-coeffs := [1, -1, 0, 1, -1, 1, 0, -1, 1];
+prec := 300;
+//8.0.1265625.1
+//coeffs := [1, -1, 0, 1, -1, 1, 0, -1, 1];
+//8.0.13140625.1
+coeffs := [1, 3, 5, 3, 4, -3, 5, -3, 1];
 QQ := RationalsExtra(prec);
 CC<I> := QQ`CC;
 eps := CC`epscomp;
@@ -21,11 +25,13 @@ tau := taus[1];
 tau0 := tau;
 tau := ChangeRing(tau, CC);
 print "checking if Jacobian";
-sch := SchottkyModularForm(tau : prec := (prec div 3));
+tau_red := SiegelReduction(tau);
+sch := SchottkyModularForm(tau_red : prec := (prec div 3));
 print sch;
 assert Abs(sch) lt 10^(-prec/4);
-eqns := ReconstructCurveG4(tau);
+eqns := ReconstructCurveG4(tau_red);
 Q,C := Explode(eqns);
+invs, wts := InvariantsGenus4Curves(Q,C);
 
 // compare
 T := RiemannSurface(R.1^5 + 1, 3 : Precision := 300);
