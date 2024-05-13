@@ -3,6 +3,7 @@ AttachSpec("~/github/CHIMP/CHIMP.spec");
 AttachSpec("~/github/Genus-4/magma/spec");
 AttachSpec("~/github/reconstructing-g4/magma/spec");
 Attach("findg4.m");
+load "algebraize.m";
 SetVerbose("CMExp",2);
 SetVerbose("Reconstruction",true);
 SetVerbose("Theta",true);
@@ -18,7 +19,9 @@ CC<I> := QQ`CC;
 eps := CC`epscomp;
 R<x> := PolynomialRing(QQ);
 f := R!coeffs;
-//K<nu> := NumberField(coeffs);
+K<nu> := NumberFieldExtra(f);
+_, K0incl, inv := IsCMField(K);
+K0, incl := Explode(K0incl);
 taus := FullEnumerationG4(f);
 tau := taus[1];
 // reducing precision
@@ -32,6 +35,20 @@ assert Abs(sch) lt 10^(-prec/4);
 eqns := ReconstructCurveG4(tau_red);
 Q,C := Explode(eqns);
 invs, wts := InvariantsGenus4Curves(Q,C);
+invs0 := invs;
+invs := WPSMultiply(wts, invs, invs[4]^(-1/wts[4]));
+AlgRecG4(invs : normalized := true);
+
+// computing class field and recognizing invariants
+AttachSpec("~/github/hilbertmodularforms/ModFrmHilD/spec");
+G, mp := TotallyPositiveUnits(K0);
+U, phiU := UnitGroup(ZZK : GRH := true);
+//for i in [1..NumberOfGenerators(U)] do print [ EmbedExtra(phiU(U.1) : iota := inf) : inf in InfinitePlacesExtra(K) ]; end for;
+gensU := Generators(U);
+gensV := [ (phiU(gen)*inv(phiU(gen))) @@ mp2 : gen in gensU ];
+V := sub< G | gensV >;
+Q, pQ := quo< G | V >;
+
 
 // compare
 T := RiemannSurface(R.1^5 + 1, 3 : Precision := 300);
