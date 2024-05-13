@@ -1,7 +1,8 @@
-AttachSpec("~/github/cm-calculations-g3/magma/spec");
 AttachSpec("~/github/CHIMP/CHIMP.spec");
+AttachSpec("~/github/cm-calculations-g3/magma/spec");
 AttachSpec("~/github/Genus-4/magma/spec");
 AttachSpec("~/github/reconstructing-g4/magma/spec");
+AttachSpec("~/github/Reconstruction/magma/spec");
 Attach("findg4.m");
 load "algebraize.m";
 SetVerbose("CMExp",2);
