@@ -238,9 +238,7 @@ for i := 1 to #invs do
   end if;
 end for;
 
-invs_rk3 := InvariantsGenus4CurvesRank3(f,v);
-
-/* invs_L
+/* invs_L :=
  
 [ ext<K0|Polynomial(K0, [-1, -1, 1])> where K0 is RationalField() |
 [ RationalField() | 0, 0 ],
@@ -303,8 +301,81 @@ invs_rk3 := InvariantsGenus4CurvesRank3(f,v);
 [ RationalField() | 0, 0 ],
 [ RationalField() | 0, 0 ],
 [ RationalField() | 0, 0 ]
+];
+
+S0<[t]> := PolynomialRing(Parent(invs_L[1]), 6);
+S<X,Y> := PolynomialRing(S0, 2);
+
+f := t[6]*(X^5*Y-Y^6); // up to a constant it is our reconstructed sextic
+v := &+[t[i]*MonomialsOfDegree(S,4)[i] : i in [1..5]]; // we search for a binary quartic that might work
+
+invs_rk3, wgt := InvariantsGenus4CurvesRank3(f,v);
+
+J := Ideal([invs_L[i]-invs_rk3[i] : i in [1..60]]);
+RadicalDecomposition(J);
+
+/*
+Groebner basis:
+[
+t[1],
+t[2],
+t[3],
+t[4],
+t[5] + 1/10469*(2835*$.1 + 10221)*t[6]^4,
+t[6]^5 + 1/1331*(945*$.1 - 4352)
 ]
+]
+Thus we find v and f, but we can do better by rescaling both to get rid of the annoying t[6]
+//*/
+/*
+f := t[6]^6/NormalForm(t[6]^5, J)*(X^5*Y-Y^6);
+v := NormalForm(t[5], J)*Y^4;
+
+v := S!Evaluate(v, [X/t[6],Y/t[6]]);
+f := S!Evaluate(f, [X/t[6],Y/t[6]]);
+
+L<nu> := Parent(invs_L[1]);
+P3 := ProjectiveSpace(L, 3);
+S<x,y,z,t> := CoordinateRing(P3);
+
+Q := x*z-y^2;
+E := 10469*t^3-(2835*nu+10221)*z^2*t+(945*nu+3407)*(x^2*y-z^3);
+
+inv, wgt := InvariantsGenus4Curves(Q,E);
+WPSEqual(wgt, inv, invs_L); // indeed isomorphic
 */
+
+
+//we derive an equation of the genus 4 curve
+
+L<nu> := NumberFieldExtra(Polynomial(RationalsExtra(), [1,-1,-1]));
+P3 := ProjectiveSpace(L, 3);
+S<x,y,z,t> := CoordinateRing(P3);
+
+Q := x*z-y^2;
+E := 10469*t^3-(2835*nu+10221)*z^2*t+(945*nu+3407)*(x^2*y-z^3);
+
+C := Curve(P3, [Q,E]);
+End := GeometricEndomorphismRepresentation(C);
+
+for e in End do           
+Polredabs(MinimalPolynomial(e[2]));
+end for;
+
+ends_ZZ := [ChangeRing(el[2], ZZ) : el in End];
+
+MinimalPolynomial(ends_ZZ[#ends_ZZ]);
+m := $1;
+Discriminant(m);
+Factorization($1);
+O := EquationOrder(m);
+UnitGroup(O);
+ClassGroup(O);
+PicardGroup(O);
+c := Conductor(O);
+Norm(c);
+IsPrincipal(c);
+
 
 // compare
 /*

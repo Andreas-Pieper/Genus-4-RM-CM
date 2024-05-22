@@ -227,8 +227,6 @@ D, P, Q := SmithForm(M);
 D;
 P;
 Q;
-for el in ends do
-for el in ends_ZZ do
 for el in ends_ZZ do
 MinimalPolynomial(el);
 end for;
