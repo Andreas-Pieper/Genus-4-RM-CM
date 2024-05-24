@@ -17,7 +17,7 @@ intrinsic InitializeDataFiles() -> .
   return Sprintf("Files %o and %o\n initialized\n", all_filename, jac_filename);
 end intrinsic;
 
-intrinsic CheckForJacobians(label::MonStgElt, coeffs:SeqEnum, filename::MonStgElt : prec := 40) -> .
+intrinsic CheckForJacobians(label::MonStgElt, coeffs::SeqEnum, filename::MonStgElt : prec := 40) -> .
   {}
 
   QQ := RationalsExtra(prec);
