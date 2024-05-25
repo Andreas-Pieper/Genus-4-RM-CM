@@ -10,7 +10,7 @@ intrinsic InitializeDataFiles() -> Any
   return Sprintf("Files %o and %o initialized", all_filename, jac_filename);
 end intrinsic;
 
-intrinsic CheckForJacobians(label::MonStgElt, coeffs_str::MonStgElt : prec := 40) -> Any
+intrinsic CheckForJacobians(label::MonStgElt, coeffs_str::MonStgElt : prec := 80) -> Any
   {}
 
   coeffs := eval coeffs_str;
@@ -25,12 +25,10 @@ intrinsic CheckForJacobians(label::MonStgElt, coeffs_str::MonStgElt : prec := 40
   for i->tau in taus do
     tau0 := tau;
     if not IsSymmetric(tau0) then
-      print "tau not symmetric: replacing by (tau + tau^T)/2";
       tau0 := (tau0 + Transpose(tau0))/2;
     end if;
     tau_red := SiegelReduction(tau0);
     if not IsSymmetric(tau_red) then
-      print "tau_red not symmetric: replacing by (tau_red + tau_red^T)/2";
       tau_red := (tau_red + Transpose(tau_red))/2;
     end if;
     sch := SchottkyModularForm(tau_red : prec := prec);
