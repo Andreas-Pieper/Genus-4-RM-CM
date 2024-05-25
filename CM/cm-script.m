@@ -7,7 +7,9 @@
 
   Then run the following command in the directory ~/github/Genus-4-RM-CM/CM
 
-parallel -j 16 --joblog joblog --eta --colsep '|' -a cm-fields-deg-8-h-1.txt magma -b label:={1} coeffs:={2} cm-script.m
+parallel -j 16 --joblog joblog --eta --colsep '\|' -a cm-fields-deg-8-h-1.txt magma -b label:={1} coeffs:={2} cm-script.m
+
+Use --dry-run to see what the commands would be run without actually executing
 */
 
 AttachSpec("~/github/CHIMP/CHIMP.spec");
@@ -18,6 +20,7 @@ AttachSpec("~/github/Reconstruction/magma/spec");
 AttachSpec("spec");
 
 try 
+  print label, coeffs;
   CheckForJacobians(label, coeffs);
   exit 0;
 catch e

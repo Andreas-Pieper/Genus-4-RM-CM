@@ -23,10 +23,19 @@ intrinsic CheckForJacobians(label::MonStgElt, coeffs_str::MonStgElt : prec := 40
   all_filename := "cm-fields-schottky-values.txt";
   jac_filename := "cm-fields-jacobians.txt";
   for i->tau in taus do
-    tau_red := SiegelReduction(tau);
+    tau0 := tau;
+    if not IsSymmetric(tau0) then
+      print "tau not symmetric: replacing by (tau + tau^T)/2";
+      tau0 := (tau0 + Transpose(tau0))/2;
+    end if;
+    tau_red := SiegelReduction(tau0);
+    if not IsSymmetric(tau_red) then
+      print "tau_red not symmetric: replacing by (tau_red + tau_red^T)/2";
+      tau_red := (tau_red + Transpose(tau_red))/2;
+    end if;
     sch := SchottkyModularForm(tau_red : prec := prec);
     abs := Abs(sch);
-    output := Sprintf("%o|%o|%o|%o\n", label, coeffs, i, abs);
+    output := StripWhiteSpace(Sprintf("%o|%o|%o|%o", label, coeffs, i, abs));
     Write(all_filename, output);
     if abs lt 10^(-prec*(3/8)) then
       Write(jac_filename, output);
