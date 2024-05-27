@@ -145,3 +145,14 @@ f_rec := x^9*y - 2*x^8*y^2 - 8*x^7*y^3 + 16*x^6*y^4 + 20*x^5*y^5 - 40*x^4*y^6 - 
 
 Cur := HyperellipticCurve(UnivariatePolynomial(Evaluate(f_rec, [x, 1])));
 End := GeometricEndomorphismRepresentation(Cur);
+
+ends_ZZ := [ChangeRing(el[2], ZZ) : el in End];
+
+K := ext<Rationals()| MinimalPolynomial(ends_ZZ[5])>;
+AlgQ:= MatrixAlgebra<Rationals(), 8 | [ChangeRing(mat, Rationals()): mat in ends_ZZ]>;
+_, P := Diagonalisation(AlgQ);
+L:= BaseRing(Parent(P));
+_, m := IsSubfield(K, L);
+elts := [((P * ends_ZZ[i]*P^-1)[1,1]) @@ m : i in [1..8]];
+O := sub<RingOfIntegers(K)|elts>;
+O;
