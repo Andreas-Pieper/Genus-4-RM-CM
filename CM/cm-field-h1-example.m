@@ -181,8 +181,23 @@ Q,C := Explode(eqns);
 invs, wts := InvariantsGenus4Curves(Q,C);
 invs0 := invs;
 //invs := WPSMultiply(wts, invs, invs[4]^(-1/wts[4]));
-invs := WPSMultiply(wts, invs, invs[9]^(-1/wts[9]));
-AlgRecG4(invs : normalized := true);
+//invs := WPSMultiply(wts, invs, invs[9]^(-1/wts[9]));
+//AlgRecG4(invs : normalized := true);
+
+invs0 := ChangeUniverse(invs, ComplexFieldExtra(Floor(prec/3)));
+n := Normalize(invs0, wts);
+_, i0 := Min([n[i] ne 0 select wts[i] else 100 : i in [1..#n]]);
+n := WPSMultiply(wts, invs0, (CC!invs0[i0])^(-1/wts[i0]));
+n := [Abs(n[i]) lt 10^(-Precision(invs0[1])) select 0 else n[i] : i in [1..#n]];
+igu := OliveToIgusa(n);
+igu_alg := AlgebraizedInvariants(igu, RationalsExtra());
+
+f_rec := HyperellipticPolynomials(HyperellipticCurveFromIgusaInvariants(igu_alg));
+AlgRecG4(n : normalized := true);
+
+
+//invs := WPSMultiply(wts, invs, invs[4]^(-1/wts[4]));
+invs0 := WPSMultiply(wts, invs0, invs[9]^(-1/wts[9]));
 
 // computing class field and recognizing invariants
 AttachSpec("~/github/hilbertmodularforms/ModFrmHilD/spec");
@@ -364,7 +379,7 @@ end for;
 
 ends_ZZ := [ChangeRing(el[2], ZZ) : el in End];
 
-K := ext<Rationals()| MinimalPolynomial(ends_ZZ[2])>;
+K := ext<Rationals()| MinimalPolynomial(ends_ZZ[5])>;
 AlgQ:= MatrixAlgebra<Rationals(), 8 | [ChangeRing(mat, Rationals()): mat in ends_ZZ]>;
 _, P := Diagonalisation(AlgQ);
 L:= BaseRing(Parent(P));
