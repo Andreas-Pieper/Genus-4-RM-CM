@@ -364,6 +364,18 @@ end for;
 
 ends_ZZ := [ChangeRing(el[2], ZZ) : el in End];
 
+K := ext<Rationals()| MinimalPolynomial(ends_ZZ[2])>;
+AlgQ:= MatrixAlgebra<Rationals(), 8 | [ChangeRing(mat, Rationals()): mat in ends_ZZ]>;
+_, P := Diagonalisation(AlgQ);
+L:= BaseRing(Parent(P));
+_, m := IsSubfield(K, L);
+elts := [((P * ends_ZZ[i]*P^-1)[1,1]) @@ m : i in [1..8]];
+O := sub<RingOfIntegers(K)|elts>;
+O;
+
+
+
+
 MinimalPolynomial(ends_ZZ[#ends_ZZ]);
 m := $1;
 Discriminant(m);
