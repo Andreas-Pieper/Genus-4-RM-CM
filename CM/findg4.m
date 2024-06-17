@@ -1,3 +1,5 @@
+declare verbose CM, 1;
+
 intrinsic FullEnumerationG4(f::RngUPolElt : prec := 300, exp := Infinity(), FixCMType := false) -> .
   {Finds the equivalence classes of CM curves given a polynomial.}
 
