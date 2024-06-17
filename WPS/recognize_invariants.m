@@ -1,3 +1,13 @@
+function FieldOfModuli()
+  // TODO
+  return false;
+end function;
+
+function RecognizeInvariantsOrbit(invs, wts, K)
+  // TODO: somehow replace instances of recognizing with computing a minimal polynomial, exploiting the fact that we have a Galois orbit of invariants
+  return false;
+end function;
+
 function recognize_invariants(invs, wts, K : prec := 100)
   OK := Integers(K);
   dK := Degree(K);
@@ -29,7 +39,7 @@ function recognize_invariants(invs, wts, K : prec := 100)
     psd := [[p, j]: j->p in ps| not IsDivisibleBy(d, p)];
     for pind in psd do
         p, j := Explode(pind);
-        exp := Valuation(&+[rel[i], p);
+        exp := Valuation(&+[rel[i]], p);
         e_new := (Round(es[j] * wts[i]) - exp)/ wts[i];
         es[j] := Max([es[j], e_new]);
     end for;
