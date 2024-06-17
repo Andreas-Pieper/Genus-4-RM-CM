@@ -116,7 +116,8 @@ intrinsic SchottkyModularFormMagma(tau::AlgMatElt : prec := -1) -> Any
   pi3 := 1;
 
   tau_prec := MatrixAlgebra(C, Nrows(tau))!tau;
-  
+  tau_prec := 1/2*(tau_prec+Transpose(tau_prec));
+    
   for m in M1 do
     pi1 := pi1*Theta(m, z, tau_prec);
   end for;

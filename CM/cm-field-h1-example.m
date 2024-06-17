@@ -255,7 +255,7 @@ end for;
 
 /* invs_L :=
  
-[ ext<K0|Polynomial(K0, [-1, -1, 1])> where K0 is RationalField() |
+[ ext<K0|Polynomial(K0, [-1, -1, 1])> where K0 is RationalsExtra(100) |
 [ RationalField() | 0, 0 ],
 [ RationalField() | 0, 0 ],
 [ RationalField() | 0, 0 ],

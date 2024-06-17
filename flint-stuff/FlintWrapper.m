@@ -38,7 +38,7 @@ intrinsic ThetaFlint(char::Mtrx, z::Mtrx, tau::Mtrx[FldCom]) -> SeqEnum
 	Write(input_filename, arb_print_matrix(z) cat arb_print_matrix(tau));
     digits := Precision(BaseRing(Parent(tau)));
     bits_precision := Ceiling(Log(10)*digits/Log(2));
-    cmd := Sprintf("~/flint/build/examples/acb_theta %o %o %o %o 0", NumberOfRows(tau), bits_precision+100, input_filename, output_filename);
+    cmd := Sprintf("~/acb_theta %o %o %o %o 0", NumberOfRows(tau), bits_precision+100, input_filename, output_filename);
 	// print arb_print_matrix(z) cat arb_print_matrix(tau);
     //print cmd;
 	System(cmd);
@@ -47,9 +47,10 @@ intrinsic ThetaFlint(char::Mtrx, z::Mtrx, tau::Mtrx[FldCom]) -> SeqEnum
 	// print output;
 	// print Pipe("ls ~/CODE/", "");
     // FIXME
-	// System(Sprintf("rm %o %o", input_filename, output_filename));
+	System(Sprintf("rm %o %o", input_filename, output_filename));
 	output2 := Split(output, "\n");
 	reals_list := [* FlintToMagma(s) : s in output2 *];
+	reals_list;
 	CC<j> := ComplexField(Min([Precision(r) : r in reals_list]));
 	return [ reals_list[i] + reals_list[i+1]*j : i in [1..#reals_list by 2] ];
 end intrinsic;
