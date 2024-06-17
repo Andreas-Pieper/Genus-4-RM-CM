@@ -34,7 +34,7 @@ function FindCurve(tau : prec := 300)
         inv, wgt := InvariantsGenus4Curves(f);// : normalize := true);
         "Computing an optimized normalized model...";
         inv_opti := WPSOptimal(wgt, inv);// can try WPSNormalize if this takes too long
-
+	//Andreas: Still need to figure out the best way to normalize in a WPS here.
         "Computing better model...";        
         t, lambda := IsSquare(inv[1]/inv_opti[1]);
         if not t then
@@ -79,6 +79,7 @@ function FindCurve(tau : prec := 300)
         CC<I> := BaseRing(CC4);
 
         inv, wgt := InvariantsGenus4Curves(Q, E : normalize := true);
+	//Andreas: When the rank is 3, then normalizing by putting the first coefficient to 1 is dangerous. In the rank 4 case you do not have this issue.
         if #inv eq 65 then // checks if it is actually rank 3 even if the precision is wrong
             inv_rk3 := InvariantsGenus4Curves(X*T-Y*Z, (Y-Z)^3 : normalize := true);
             if Max([Abs(CC!inv_rk3[i]-inv[i]) : i in [1..65]]) le 10^(-2) then // it is actually of rank 3
