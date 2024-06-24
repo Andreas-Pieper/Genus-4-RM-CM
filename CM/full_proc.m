@@ -19,7 +19,7 @@ function Normalize(inv, wgt : prec := Precision(Parent(inv[1])))
     _, i0 := Max([Abs((inv[i]) ^ (1 / wgt[i])) : i in [1..#inv]]); // find the biggest normalizing factor possible
     inv0 := WPSMultiply(wgt, inv, inv[i0] ^ (-1 / wgt[i0])); // renormlize by that factor, to see which invariants are actually 0
     inv := [Abs(inv0[i]) ge 10 ^ (-(prec div 2)) select inv[i] else 0 : i in [1..#inv]];
-    return inv;
+    return WPSNormalize(wgt, inv);
 end function;
 
 function FindCurveHyperelliptic(rosens, F)
