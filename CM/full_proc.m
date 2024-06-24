@@ -4,7 +4,9 @@ AttachSpec("~/github/Genus-4/magma/spec");
 AttachSpec("~/github/reconstructing-g4/magma/spec");
 AttachSpec("~/github/Reconstruction/magma/spec");
 Attach("~/github/Genus-4-RM-CM/flint-stuff/schottky-fast-theta.m");
+Attach("~/github/Genus-4-RM-CM/CM/findg4.m");
 
+SetVerbose("CM",true);
 SetVerbose("Reconstruction",true);
 SetVerbose("Theta",true);
 SetVerbose("Genus4",true);
@@ -13,10 +15,10 @@ SetDebugOnError(true);
 
 import "~/Genus-4-RM-CM/WPS/recognize_invariants.m" : recognize_invariants;
 
-function Normalize(inv, wgt)
+function Normalize(inv, wgt : prec := Precision(Parent(inv[1])))
     _, i0 := Max([Abs((inv[i]) ^ (1 / wgt[i])) : i in [1..#inv]]); // find the biggest normalizing factor possible
     inv0 := WPSMultiply(wgt, inv, inv[i0] ^ (-1 / wgt[i0])); // renormlize by that factor, to see which invariants are actually 0
-    inv := [Abs(inv0[i]) ge 10 ^ (-Precision / 2) select inv[i] else 0 : i in [1..#inv]];
+    inv := [Abs(inv0[i]) ge 10 ^ (-(prec div 2)) select inv[i] else 0 : i in [1..#inv]];
     return inv;
 end function;
 
