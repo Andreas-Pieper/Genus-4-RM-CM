@@ -34,7 +34,7 @@ vprint CMExp, 1 : "Done determining quotient of unit group!", #Q;
 /* Now follow Streng's method */
 taus := [ ];
 counter := 0;
-aas := [ideal< ZZK | 1>]; // WARNING! assuming trivial class group
+aas := [ideal< ZZK | 1>]; // FIXME WARNING! assuming trivial class group
 for aa in aas do
     vprint CMExp, 1 : "Norm of ideal:", Norm(aa);
     aabar := ideal< ZZK | [ inv(gen) : gen in Generators(aa) ] >;
@@ -124,7 +124,7 @@ for aa in aas do
         tau := ReduceSmallPeriodMatrix(tau);
         vprint CMExp, 1 : "done with reduction.";
         tausmall := ChangeRing(tau, CCSmall);
-        Append(~taus, tau);
+        Append(~taus, <tau, Phi>);
     end for;
 end for;
 return taus;
