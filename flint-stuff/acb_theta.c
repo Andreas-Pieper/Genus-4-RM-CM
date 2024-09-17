@@ -6,12 +6,11 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
-#include "arb.h"
-#include "acb.h"
-#include "acb_mat.h"
-#include "acb_theta.h"
+#include "/opt/local/include/flint/arb.h"
+#include "/opt/local/include/flint/acb.h"
+#include "/opt/local/include/flint/acb_mat.h"
+#include "/opt/local/include/flint/acb_theta.h"
 #define LOG102 0.301029995663981195213738894725
-//arb_print := func<elt | ReplaceCharacter(Sprintf("%o +/- %.*o", elt, 3, Abs(elt)*10^(1-Precision(Parent(elt)))), "E", "e")>;
 
 
 bool check_usage(int argc, char* argv[]) {
@@ -146,14 +145,6 @@ int main(int argc, char* argv[])
     // Compute theta values
     acb_theta_all(theta, z, tau, false, prec);
 
-
-
-    if( verbose ) {
-        flint_printf("\nTheta values:\n");
-        for (size_t i = 0; i < nb; ++i) {
-            acb_printd(&theta[i], 10); flint_printf("\n");
-        }
-    }
     if( !write_output(theta, nb, output_filename) )
         return EXIT_FAILURE;
 

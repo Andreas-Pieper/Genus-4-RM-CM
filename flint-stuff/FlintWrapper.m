@@ -1,13 +1,10 @@
-// wrapper that ports Jean Kieffer's Flint code for computing theta functions to Magma
-// written by Edgar Costa and Raymond van Bommel
-// requires CHIMP
+// You first need to compile acb_theta.c
 
 function mktemp()
     return Split(Pipe("mktemp", ""), "\n")[1];
 end function;
 
 function FlintToMagma(s)
-	//print s;
 	sSplit := Split(s, "/");
 	sNumber := sSplit[1][[1..#sSplit[1]-1]];
 	sError := sSplit[2][[2..#sSplit[2]]];
@@ -20,8 +17,6 @@ function FlintToMagma(s)
 	mNumber := Max([1] cat [ Abs(eval s) : s in  Split(sNumber, " *,()j") | s ne "+" and s ne "-"]);
 	prec := Ceiling(Log(10, mNumber/mError)) + 3;
     sNumber cat:=Sprintf("p%o", prec);
-	// CC<j> := ComplexField(prec);
-    //print sNumber;
 	return eval sNumber;
 end function;
 
@@ -32,25 +27,17 @@ intrinsic ThetaFlint(char::Mtrx, z::Mtrx, tau::Mtrx[FldCom]) -> SeqEnum
 	arb_print_complex := func<elt | arb_print_real(Real(elt)) cat arb_print_real(Imaginary(elt))>;
 	arb_print_matrix := func<elt | &cat[ arb_print_complex(elt[i,j]) : i in [1..NumberOfRows(elt)], j in [1..NumberOfColumns(elt)] ] >;
 	i := Random(10^20);
-	//return arb_print_matrix(z) cat arb_print_matrix(tau);
     input_filename := mktemp();
     output_filename := mktemp();
 	Write(input_filename, arb_print_matrix(z) cat arb_print_matrix(tau));
     digits := Precision(BaseRing(Parent(tau)));
     bits_precision := Ceiling(Log(10)*digits/Log(2));
-    cmd := Sprintf("~/acb_theta %o %o %o %o 0", NumberOfRows(tau), bits_precision+100, input_filename, output_filename);
-	// print arb_print_matrix(z) cat arb_print_matrix(tau);
-    //print cmd;
-	System(cmd);
-	// print "\n";
+    cmd := Sprintf("/a.out %o %o %o %o 0", NumberOfRows(tau), bits_precision+100, input_filename, output_filename);
+	
+    _ := System(cmd);
 	output := Read(output_filename);
-	// print output;
-	// print Pipe("ls ~/CODE/", "");
-    // FIXME
-	System(Sprintf("rm %o %o", input_filename, output_filename));
 	output2 := Split(output, "\n");
 	reals_list := [* FlintToMagma(s) : s in output2 *];
-	reals_list;
 	CC<j> := ComplexField(Min([Precision(r) : r in reals_list]));
 	return [ reals_list[i] + reals_list[i+1]*j : i in [1..#reals_list by 2] ];
 end intrinsic;

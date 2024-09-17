@@ -3,30 +3,38 @@ AttachSpec("~/github/cm-calculations/magma/spec");
 AttachSpec("~/github/Genus-4/magma/spec");
 AttachSpec("~/github/reconstructing-g4/magma/spec");
 AttachSpec("~/github/Reconstruction/magma/spec");
+Attach("~/FlintWrapper.m");
 Attach("~/github/Genus-4-RM-CM/flint-stuff/schottky-fast-theta.m");
 Attach("~/github/Genus-4-RM-CM/CM/findg4.m");
-
+/*
 SetVerbose("CM",true);
 SetVerbose("Reconstruction",true);
 SetVerbose("Theta",true);
 SetVerbose("Genus4",true);
 SetDebugOnError(true);
-//Attach("~/Genus-4-RM-CM/WPS/WPSOptimal");
+*/
 
-import "~/Genus-4-RM-CM/WPS/recognize_invariants.m" : recognize_invariants;
-
-function Normalize(inv, wgt : prec := Precision(Parent(inv[1])))
+function Normalize(inv, wgt : prec := Precision(Parent(inv[1])), j := "not def")
     _, i0 := Max([Abs((inv[i]) ^ (1 / wgt[i])) : i in [1..#inv]]); // find the biggest normalizing factor possible
-    inv0 := WPSMultiply(wgt, inv, inv[i0] ^ (-1 / wgt[i0])); // renormlize by that factor, to see which invariants are actually 0
-    inv := [Abs(inv0[i]) ge 10 ^ (-(prec div 2)) select inv[i] else 0 : i in [1..#inv]];
-    return WPSNormalize(wgt, inv);
+
+    inv0 := WPSMultiply(wgt, inv, inv[i0] ^ (-1 / wgt[i0])); // renormalize by that factor, to see which invariants are actually 0
+    
+    if Type(j) eq MonStgElt then
+        inv := [Abs(inv0[i]) ge 10 ^ (-prec/2) select inv[i] else 0 : i in [1..#inv]];
+    else
+        inv := [Abs(inv0[i]) gt Abs(inv0[1]) select inv[i] else 0 : i in [1..#inv]];
+    end if;
+
+    res := WPSNormalize(wgt, inv);
+
+    return res;
 end function;
 
-function FindCurveHyperelliptic(rosens, F)
-    CC := Parent(rosens[1]);
+function FindCurveHyperelliptic(rosens)
+    prec := Precision(Parent(rosens[1]));
+    _<x,y> := PolynomialRing(Parent(rosens[1]), 2);
     // recognize Rosenhain invariants
 
-    _<x,y> := PolynomialRing(F, 2);
     f := y*x*(x-y)*(&*[x-r*y : r in rosens]);
     inv, wgt := InvariantsGenus4Curves(f);// : normalize := true);
     vprint CM: "Computing an optimized normalized model...";
@@ -72,31 +80,102 @@ function FindCurveHyperelliptic(rosens, F)
 
 end function;
 
-function FindCurveNonHyperelliptic(Q, E, F)
+function OliveToIgusa(I)
+    J1 := -15*I[1];
+    J2 := 45/8*(3*I[1]^2 - 25/2*I[2]);
+    J3 := 15/8*(9/2*I[1]^3 - 25*I[1]*I[2] - 375/4*I[3]);
+    J4 := (J1*J3-J2^2)/4;
+    J5 := 81/16*(-3*I[1]^5 + 7625/256*I[1]^3*I[2] + 13125/256*I[1]^2*I[3] - 9375/128*I[1]*I[2]^2 - 28125/128*I[2]*I[3] - 28125/256*I[4]);
+    return [J1,J2,J3,J4,J5];
+end function;
+
+function FindCurveNonHyperelliptic(Q, E : K := [Rationals()])
     CC4<X,Y,Z,T> := Parent(Q);
     CC<I> := BaseRing(CC4);
     inv, wgt := InvariantsGenus4Curves(Q, E);
     inv := Normalize(inv, wgt);
-        
+    ChangeUniverse(inv, ComplexField(5));
+    /*
     if #inv eq 65 then // checks if it is actually rank 3 even if the precision is wrong
         inv_rk3 := InvariantsGenus4Curves(X*T-Y*Z, (Y-Z)^3 : normalize := true);
         if Max([Abs(CC!inv_rk3[i]-inv[i]) : i in [1..65]]) le 10^(-2) then // it is actually of rank 3
             while #inv eq 65 do
                 CC<I> := ComplexField(Floor(3/4*Precision(CC)));
-                inv, wgt := InvariantsGenus4Curves(ChangeRing(Q, CC), ChangeRing(E, CC));
-                inv := Normalize(inv, wgt);
+                "New prec : ", Precision(CC);
+                Q := ChangeRing(Q, CC);
+                E := Parent(Q)!E;
+                inv, wgt := InvariantsGenus4Curves(Q,E);
             end while;
         end if;
+    end if;*/
+    prec := Precision(Parent(inv[1]));
+    F := RationalsExtra(prec);
+
+    if #inv eq 60 then
+        "Rank 3 case";
+        if Max([i : i->el in inv | el ne 0]) le 5 then 
+            "Only sextic is non-zero";
+            invs := WPSNormalize([2, 4, 6, 10], inv[1..4]);
+            try 
+                "Trying LLL...";
+                L, invs_alg := NumberFieldExtra(invs, RationalsExtra(prec));
+                "LLL worked";
+                L;
+                return ReconstructionGenus4(invs_alg cat [0 : i in [1..56]]);
+            catch e 
+                "LLL didn't work";
+                return 0,0;
+            end try;
+        end if;
+/* need to finish this to cover all cases
+        igu := WPSNormalize([2, 4, 6, 8, 10], OliveToIgusa(inv[1..4]));
+        ChangeUniverse(igu, ComplexField(30));
+        try 
+            "Trying LLL...";
+            L, igu_alg := NumberFieldExtra(igu, RationalsExtra(prec));
+            L;
+            "LLL worked";
+        catch e 
+            "LLL didn't work...";
+            return 0,0;
+        end try;
+
+        if igu_alg ne [0,0,0,0,0] then  
+            igu_alg;
+            f_rec := HyperellipticPolynomials(HyperellipticCurveFromIgusaInvariants(igu_alg : minimize := true));
+            lis := &cat[Flat(c) : c in Coefficients(f_rec)];
+            f_rec *:= GCD([Denominator(c) : c in lis])/GCD([Numerator(c) : c in lis]);
+            nu := InfinitePlaces(L);
+            i0 := Min([i : i in [1..#nu] | Min([Abs(Evaluate(igu_alg[j], nu[i])-igu[j]) : j in [1..#igu_alg]]) le 10^(-prec/2)]);
+            i0; // now we know which embedding it is
+        else
+            f_rec := 0;
+        end if;
+        // recognize all invariants which could work
+        // 
+        if inv[8] ne 0 then
+            sec_inv := [1, inv[13]/(inv[8]*inv[1]), inv[24]/(inv[8]*inv[1]^2), inv[43]/(inv[8]*inv[1]^3), inv[54]/(inv[8]*inv[1]^4)];
+            L1, sec_alg := NumberFieldExtra(sec_inv, RationalsExtra(prec));
+            sec_alg;
+        else
+            // todo
+        end if;*/
+   else
+        "Rank 4 case";    
+        try
+            "Trying LLL...";
+            L, inv_rec := NumberFieldExtra(inv, F);
+            return ReconstructionGenus4(inv_rec);
+        catch e
+            "LLL did not work...";
+        end try;
     end if;
-
-    inv_rec := recognize_invariants(inv, wgt, F);
-
-    return ReconstructionGenus4(inv_rec);
+    return 0, 0;
 end function;
 
 // Input: taus, a Galois orbit of period matrices
 //        F, intersection of field of moduli with the reflex field
-function FindCurve(tau, F : prec := Precision(BaseRing(tau)))
+function FindCurve(tau : prec := Precision(BaseRing(tau)), K := Rationals())
     invs := [];
     //for tau in taus do
     tau0 := (tau + Transpose(tau))/2;
@@ -104,25 +183,48 @@ function FindCurve(tau, F : prec := Precision(BaseRing(tau)))
     tau_red := (tau_red + Transpose(tau_red))/2;
     
     vprint CM: "Checking if Jacobian...";
-    sch := SchottkyModularFormMagma(tau_red : prec := (prec div 3));
+    sch := SchottkyModularForm(tau_red : prec := (prec div 3), flint := true);
+    RealField(10)!Abs(sch);
+    prec;
     if Abs(sch) gt 10^(-prec/4) then
-        print "Not a jacobian.";
-        return Abs(sch);
+        vprint CM: "Not a jacobian.";
+        return 0, 0;
     end if;
     vprint CM: "It is probably a jacobian.";
     vprint CM: "Norm of the Schottky modular form: %o\n", Abs(sch);
 
-    Eqs := ReconstructCurveG4(tau_red);
+    Eqs := ReconstructCurveG4(tau_red : flint := true);
 
     if #Eqs eq 7 then // hyperelliptic case
         vprint CM: "Hyperelliptic case";
-        return FindCurveHyperelliptic(Eqs, F);
+        return FindCurveHyperelliptic(Eqs), 0;
     elif #Eqs eq 2 then
         vprint CM: "Non-hyperelliptic curve";
         Q, E := Explode(Eqs);
-        return FindCurveNonHyperelliptic(Q, E, F);
+        //K;
+        return FindCurveNonHyperelliptic(Q, E : K := K);
     end if;
 
     vprint CM: "Not the right number of equations, error in reconstructing-g4 package";
-    return 0,0;
+    return 0, 0;
 end function;
+
+ 
+/*
+load "fields_pot.m";
+
+R<x> := PolynomialRing(Rationals());
+
+for l in L_fields do
+    l;
+    f := R!l;
+    taus := FullEnumerationG4(f : prec := 300); 
+    sch := [SchottkyModularForm(t) : t in taus];
+    for i in [1..#taus] do
+        Write("schottky-values.txt", Sprint(l) cat "|" cat Sprint(i) cat "|" cat Sprint(RealField(100)!Abs(sch[i])));
+        if Abs(sch[i]) le 10^(-100) then
+            Write("jacobians.txt", Sprint(l) cat "|" cat Sprint(i) cat "|" cat Abs(sch[i]));
+        end if;
+    end for;
+end for;
+*/

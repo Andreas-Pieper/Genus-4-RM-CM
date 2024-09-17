@@ -68,5 +68,12 @@ Pi_sm_red, Q := SiegelReduction(Pi_sm);
 */
 
 Pi_sm := ModuliToSmallPeriodMatrixNoam(Hextra, taus);
-Q_CC, C_CC := ReconstructCurveG4(Pi_sm);
-invs_CC := InvariantsGenus4Curves(Q_CC, C_CC : normalize := false);
+Attach("~/github/Genus-4-RM-CM/flint-stuff/schottky-fast-theta.m");
+Attach("~/FlintWrapper.m");
+
+load "~/github/Genus-4-RM-CM/CM/full_proc.m";
+
+//SchottkyModularFormFlint(Pi_sm);
+Q_CC, C_CC := Explode(ReconstructCurveG4(Pi_sm : flint := true));
+Q, E := FindCurveNonHyperelliptic(Q_CC, C_CC);
+Q, E := MinimizeG4(Q,E);

@@ -1,9 +1,14 @@
 AttachSpec("~/github/CHIMP/CHIMP.spec");
-AttachSpec("~/github/cm-calculations-g3/magma/spec");
+AttachSpec("~/github/cm-calculations/magma/spec");
 AttachSpec("~/github/Genus-4/magma/spec");
 AttachSpec("~/github/reconstructing-g4/magma/spec");
 AttachSpec("~/github/Reconstruction/magma/spec");
-Attach("findg4.m");
+Attach("~/github/Genus-4-RM-CM/CM/findg4.m");
+
+Attach("~/FlintWrapper.m");
+Attach("~/github/Genus-4-RM-CM/flint-stuff/schottky-fast-theta.m");
+load "~/github/Genus-4-RM-CM/CM/full_proc.m";
+
 load "algebraize.m";
 SetVerbose("CMExp",2);
 SetVerbose("Reconstruction",true);
@@ -19,138 +24,6 @@ function OliveToIgusa(I)
     return [J1,J2,J3,J4,J5];
 end function;
 
-function InvariantsGenus4CurvesRank3(f, v)
-	K := BaseRing(Parent(f));
-
-	// Covariants of f
-	h24 := Transvectant(f, f, 4);
-	h28 := Transvectant(f, f, 2);
-	h32 := Transvectant(h24, f, 4);
-	h36 := Transvectant(h24, f, 2);
-	h38 := Transvectant(h24, f, 1);
-	h312 := Transvectant(h28, f, 1);
-	h44 := Transvectant(h32, f, 2);
-	h46 := Transvectant(h32, f, 1);
-	h52 := Transvectant(h24, h32, 2);
-	h54 := Transvectant(h24, h32, 1);
-	h58 := Transvectant(h28, h32, 1);
-	h661 := Transvectant(h38, h32, 2);
-	h662 := Transvectant(h36, h32, 1);
-	h74 := Transvectant(f, h32^2, 3);
-	h82 := Transvectant(h24, h32^2, 3);
-	h94 := Transvectant(h38, h32^2, 4);
-	h102 := Transvectant(h32^3, f, 5);
-
-	// Covariants of v
-	k24 := Transvectant(v, v, 2);
-	k36 := Transvectant(v, k24, 1);
-
-	// Invariants
-	// Invariants of f
-	J2f := Evaluate(Transvectant(f, f, 6), [0,0]);
-	J4f := Evaluate(Transvectant(h24, h24, 4), [0,0]);
-	J6f := Evaluate(Transvectant(h32, h32, 2), [0,0]);
-	J10f := Evaluate(Transvectant(h32^3, f, 6), [0,0]);
-	J15f := Evaluate(Transvectant(h38, h32^4, 8), [0,0]);
-	invf := [K | J2f, J4f, J6f, J10f, J15f];
-
-	// Invariants of v
-	J2v := Evaluate(Transvectant(v, v, 4), [0,0]);
-	J3v := Evaluate(Transvectant(k24, v, 4), [0,0]);
-	invv := [K | J2v, J3v];
- 
-	//  Joint degree 3
-	J3 := Evaluate(Transvectant(h24, v, 4), [0,0]);
-	inv3 := [K | J3];
-
-	//  Joint degree 4
-	J41 := Evaluate(Transvectant(h28, v^2, 8), [0,0]);
-	J42 := Evaluate(Transvectant(h24, k24, 4), [0,0]);
-	J43 := Evaluate(Transvectant(k36, f, 6), [0,0]);
-	inv4 := [K | J41, J42, J43];
-
-	// Joint degree 5
-	J51 := Evaluate(Transvectant(h38, v^2, 8), [0,0]);
-	J52 := Evaluate(Transvectant(h44, v, 4), [0,0]);
-	J53 := Evaluate(Transvectant(h28, v*k24, 8), [0,0]);
-	J54 := Evaluate(Transvectant(f^2, v^3, 12), [0,0]);
-	inv5 := [K | J51, J52, J53, J54];
-
-	// Joint degree 6
-	J61 := Evaluate(Transvectant(h38, v*k24, 8), [0,0]);
-	J62 := Evaluate(Transvectant(f^2, v^2*k24, 12), [0,0]);
-	J63 := Evaluate(Transvectant(h28, k24^2, 8), [0,0]);
-	J64 := Evaluate(Transvectant(h36, k36, 6), [0,0]);
-	J65 := Evaluate(Transvectant(h312, v^3, 12), [0,0]);
-	J66 := Evaluate(Transvectant(h54, v, 4), [0,0]);
-	J67 := Evaluate(Transvectant(h44, k24, 4), [0,0]);
-	J68 := Evaluate(Transvectant(h32*f, v^2, 8), [0,0]);
-	inv6 := [K | J61, J62, J63, J64, J65, J66, J67, J68];
-
-	// Joint degree 7
-	J71 := Evaluate(Transvectant(h32^2, v, 4), [0,0]);
-	J72 := Evaluate(Transvectant(h54, k24, 4), [0,0]);
-	J73 := Evaluate(Transvectant(h58, v^2, 8), [0,0]);
-	J74 := Evaluate(Transvectant(f*h36, v^3, 12), [0,0]);
-	J75 := Evaluate(Transvectant(f^2, v*k24^2, 12), [0,0]);
-	J76 := Evaluate(Transvectant(h32*f, v*k24, 8), [0,0]);
-	J77 := Evaluate(Transvectant(h46, k36, 6), [0,0]);
-	J78 := Evaluate(Transvectant(h312, v^2*k24, 12), [0,0]);
-	J79 := Evaluate(Transvectant(h38, k24^2, 8), [0,0]);
-	inv7 := [K | J71, J72, J73, J74, J75, J76, J77, J78, J79];
-
-	// Joint degree 8
-	J81 := Evaluate(Transvectant(h32*h24, k36, 6), [0,0]);
-	J82 := Evaluate(Transvectant(h312, v*k24^2, 12), [0,0]);
-	J83 := Evaluate(Transvectant(h32*h36, v^2, 8), [0,0]);
-	J84 := Evaluate(Transvectant(h32^2, k24, 4), [0,0]);
-	J85 := Evaluate(Transvectant(h74, v, 4), [0,0]);
-	J86 := Evaluate(Transvectant(f*h46, v^3, 12), [0,0]);
-	J87 := Evaluate(Transvectant(f*h36, v^2*k24, 12), [0,0]);
-	J88 := Evaluate(Transvectant(h32*f, k24^2, 8), [0,0]);
-	J89 := Evaluate(Transvectant(h58, v*k24, 8), [0,0]);
-	inv8 := [K | J81, J82, J83, J84, J85, J86, J87, J88, J89];
-
-	// Joint degree 9
-	J91 := Evaluate(Transvectant(h74, k24, 4), [0,0]);
-	J92 := Evaluate(Transvectant(h32*h52, v, 4), [0,0]);
-	J93 := Evaluate(Transvectant(h52*f, v*k24, 8), [0,0]);
-	J94 := Evaluate(Transvectant(h312, k24^3, 12), [0,0]);
-	J95 := Evaluate(Transvectant(h32*h28, v*k36, 10), [0,0]);
-	J96 := Evaluate(Transvectant(f*h46, v^2*k24, 12), [0,0]);
-	J97 := Evaluate(Transvectant(h36^2, v^3, 12), [0,0]);
-	J98 := Evaluate(Transvectant(h32*h46, v^2, 8), [0,0]);
-	inv9 := [K | J91, J92, J93, J94, J95, J96, J97, J98];
-
-	// Joint degree 10
-	J101 := Evaluate(Transvectant(h94, v, 4), [0,0]);
-	J102 := Evaluate(Transvectant(h32*h28, k24*k36, 10), [0,0]);
-	J103 := Evaluate(Transvectant(h52*h36, v^2, 8), [0,0]);
-	J104 := Evaluate(Transvectant(f*h661, v^3, 12), [0,0]);
-	inv10 := [K | J101, J102, J103, J104];
-
-	// Joint degree 11
-	J111 := Evaluate(Transvectant(h52^2, v, 4), [0,0]);
-	J112 := Evaluate(Transvectant(f*h662, v^2*k24, 12), [0,0]);
-	J113 := Evaluate(Transvectant(h32*h661, v^2, 8), [0,0]);
-	inv11 := [K | J111, J112, J113];
-
-	// Joint degree 12
-	J121 := Evaluate(Transvectant(h32*h82, v, 4), [0,0]);
-	J122 := Evaluate(Transvectant(h32*h662, v*k24, 8), [0,0]);
-	inv12 := [K | J121, J122];
-
-	// Joint degree 13
-	J13 := Evaluate(Transvectant(h82*h36, v^2, 8), [0,0]);
-	inv13 := [K | J13];
-
-	// Joint degree 14
-	J14 := Evaluate(Transvectant(h32*h102, v, 4), [0,0]);
-	inv14 := [K | J14];
-
-	return invf cat invv cat inv3 cat inv4 cat inv5 cat inv6 cat inv7 cat inv8 cat inv9 cat inv10 cat inv11 cat inv12 cat inv13 cat inv14, [6,12,18,30,45,4,6,8,10,10,9,13,14,12,12,15,14,14,15,15,17,16,16,20,19,19,18,16,18,18,17,17,21,19,22,22,23,21,20,20,21,25,26,24,21,23,23,24,25,29,25,28,27,32,29,31,35,33,37,41];
-;
-end function;
 
 
 prec := 300;
@@ -167,7 +40,8 @@ K<nu> := NumberFieldExtra(f);
 _, K0incl, inv := IsCMField(K);
 K0, incl := Explode(K0incl);
 taus := FullEnumerationG4(f);
-tau := taus[1];
+tau := taus[2];
+//inv := FindCurve(tau);
 // reducing precision
 tau0 := tau;
 tau := ChangeRing(tau, CC);
@@ -176,7 +50,7 @@ tau_red := SiegelReduction(tau);
 sch := SchottkyModularForm(tau_red : prec := (prec div 3));
 print sch;
 assert Abs(sch) lt 10^(-prec/4);
-eqns := ReconstructCurveG4(tau_red);
+eqns := ReconstructCurveG4(tau_red : flint := true);
 Q,C := Explode(eqns);
 invs, wts := InvariantsGenus4Curves(Q,C);
 invs0 := invs;
@@ -190,7 +64,7 @@ _, i0 := Min([n[i] ne 0 select wts[i] else 100 : i in [1..#n]]);
 n := WPSMultiply(wts, invs0, (CC!invs0[i0])^(-1/wts[i0]));
 n := [Abs(n[i]) lt 10^(-Precision(invs0[1])) select 0 else n[i] : i in [1..#n]];
 igu := OliveToIgusa(n);
-igu_alg := AlgebraizedInvariants(igu, RationalsExtra());
+igu_alg := AlgebraizedInvariants(igu, RationalsExtra(prec));
 
 f_rec := HyperellipticPolynomials(HyperellipticCurveFromIgusaInvariants(igu_alg));
 AlgRecG4(n : normalized := true);

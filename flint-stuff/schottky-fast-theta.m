@@ -148,6 +148,9 @@ intrinsic SchottkyModularFormFlint(tau::AlgMatElt : prec := -1) -> Any
   
   tau_prec := MatrixAlgebra(C, Nrows(tau))!tau;
   thetas := ThetaFlint(char, z, tau);
+  if #thetas eq 1 then
+    return 1;
+  end if;
   pis := [C | 1,1,1];
   Ms := [
     [ 171, 181, 156, 130, 134, 160, 177, 175 ],

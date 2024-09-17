@@ -20,8 +20,8 @@ AttachSpec("~/github/Reconstruction/magma/spec");
 AttachSpec("spec");
 
 try 
-  print label, coeffs;
-  CheckForJacobians(label, coeffs);
+  print coeffs;
+  CheckForJacobians(coeffs);
   exit 0;
 catch e
   WriteStderr(e);
