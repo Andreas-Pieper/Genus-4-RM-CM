@@ -26,11 +26,11 @@ for d in data do
   if d[5] eq [] then
     coeffs := d[2];
     coeffs;
-    tau := FullEnumerationG4(PolynomialRing(Rationals())!coeffs : prec := 2000);
+    taus, phis := FullEnumerationG4(PolynomialRing(Rationals())!coeffs : prec := 2000);
     
-    for i in [1..#tau] do
-      
-      tau_i := (tau[i][1]+Transpose(tau[i][1]))/2;
+    for i in [1..#taus] do
+      if 
+      tau_i := (taus[i][1]+Transpose(taus[i][1]))/2;
       tau_red := SiegelReduction(tau_i);
       tau_red := (tau_red+Transpose(tau_red))/2;
 
