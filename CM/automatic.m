@@ -2,6 +2,7 @@ Attach("~/github/Genus-4-RM-CM/CM/findg4.m");
 AttachSpec("~/github/CHIMP/CHIMP.spec");
 Attach("~/github/Genus-4-RM-CM/flint-stuff/FlintWrapper.m");
 Attach("~/github/Genus-4-RM-CM/flint-stuff/schottky-fast-theta.m");
+Attach("~/github/Genus-4-RM-CM/mumford/NootCMCube.m");
 AttachSpec("~/github/cm-calculations/magma/spec");
 AttachSpec("~/github/reconstructing-g4/magma/spec");
 
@@ -20,40 +21,46 @@ function OliveToIgusa(I)
     return [J1,J2,J3,J4,J5];
 end function;
 
-for d in data do
+for d in data[#data-25..#data] do
   d[1];
   //Write(d[1] cat ".m", "" : Overwrite := true);
-  if d[5] eq [] then
+  //if d[5] eq [] then
     coeffs := d[2];
     coeffs;
-    taus, phis := FullEnumerationG4(PolynomialRing(Rationals())!coeffs : prec := 2000);
-    
+    taus := FullEnumerationG4(PolynomialRing(Rationals())!coeffs : prec := 2000);
+    tau := [t[1] : t in taus];
+    phi := [t[2] : t in taus];
     for i in [1..#taus] do
-      if 
-      tau_i := (taus[i][1]+Transpose(taus[i][1]))/2;
-      tau_red := SiegelReduction(tau_i);
-      tau_red := (tau_red+Transpose(tau_red))/2;
+      if CheckNootCondition(NumberField(PolynomialRing(Rationals())!coeffs), phi[i]) then
+        "nay!", i;
+        tau_i := (tau[i]+Transpose(tau[i]))/2;
+        tau_red := SiegelReduction(tau_i);
+        tau_red := (tau_red+Transpose(tau_red))/2;
 
-     if Abs(SchottkyModularFormFlint(ChangeRing(tau_red, ComplexField(100)))) le 10^(-90) then
+        abs := Abs(SchottkyModularFormFlint(ChangeRing(tau_red, ComplexField(100))));
+        abs;
+       if abs le 10^(-90) then
 
-        Q, E := FindCurve(tau_red);
-      
-        if E eq 0 then
-          if Q ne 0 then
+          Q, E := FindCurve(tau_red);
+        
+          if E eq 0 then
+            if Q ne 0 then
+              K := BaseRing(Parent(Q));
+              //Write(d[1] cat ".m", "K :=" cat Sprint(K) cat "\n" cat Sprint(Q) cat ";\n");
+            end if;
+          else
+            "yay!";
+            Q;
+            E;
             K := BaseRing(Parent(Q));
-            //Write(d[1] cat ".m", "K :=" cat Sprint(K) cat "\n" cat Sprint(Q) cat ";\n");
+            if Type(K) eq FldRat then
+              Q, E := MinimizeG4(Q, E);
+            end if;
+            //Write(d[1] cat ".m", "K := " cat Sprint(K) cat "\nQ := " cat Sprint(Q) cat ";\nE := " cat Sprint(E) cat ";\n");
           end if;
-        else
-          "yay!";
-          Q;
-          E;
-          K := BaseRing(Parent(Q));
-          if Type(K) eq FldRat then
-            Q, E := MinimizeG4(Q, E);
-          end if;
-          //Write(d[1] cat ".m", "K := " cat Sprint(K) cat "\nQ := " cat Sprint(Q) cat ";\nE := " cat Sprint(E) cat ";\n");
         end if;
+      else "no :(";
       end if;
     end for;
-  end if;
+  //end if;
 end for;

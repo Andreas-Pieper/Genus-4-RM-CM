@@ -1,6 +1,6 @@
 // see Noot - On Mumford's families of abelian varieties, section 3.6
 
-intrinsic CheckNootCondition(K::FldNum, CMType::Seq) -> BoolElt
+intrinsic CheckNootCondition(K::FldNum, CMType::SetEnum) -> BoolElt
   {Given a (CM) number field of degree 8 and a CM type, check if Noot s condition on the action of the Galois group on the CM type is satisfied.}
 
   prec := 30; //FIXME
