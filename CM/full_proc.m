@@ -3,7 +3,6 @@ AttachSpec("~/github/cm-calculations/magma/spec");
 AttachSpec("~/github/Genus-4/magma/spec");
 AttachSpec("~/github/reconstructing-g4/magma/spec");
 AttachSpec("~/github/Reconstruction/magma/spec");
-Attach("~/FlintWrapper.m");
 Attach("~/github/Genus-4-RM-CM/flint-stuff/schottky-fast-theta.m");
 Attach("~/github/Genus-4-RM-CM/CM/findg4.m");
 /*
@@ -30,17 +29,29 @@ function Normalize(inv, wgt : prec := Precision(Parent(inv[1])), j := "not def")
     return res;
 end function;
 
-function FindCurveHyperelliptic(rosens)
-    prec := Precision(Parent(rosens[1]));
-    _<x,y> := PolynomialRing(Parent(rosens[1]), 2);
-    // recognize Rosenhain invariants
+function IsDeJongNoot(inv)
+    if #inv eq 60 then
+        non_zero := [i : i in [1..#inv] | inv[i] ne 0];
+        if Max(non_zero) le 5 then 
+            return true, 1;
+        elif &and[i in [ 4, 5, 9, 20, 24, 49, 57 ] : i in non_zero] then
+            return true, 2;
+        end if;
+    end if;
+    return false, 0;
+end function;
 
+function FindCurveHyperelliptic(rosensCC) // Fix me warning
+    prec := Precision(Parent(rosensCC[1]));
+    K := RationalsExtra(prec);
+    L, rosens := NumberFieldExtra(rosensCC, K);
+    _<x,y> := PolynomialRing(Parent(rosens[1]), 2);
+    
     f := y*x*(x-y)*(&*[x-r*y : r in rosens]);
     inv, wgt := InvariantsGenus4Curves(f);// : normalize := true);
     vprint CM: "Computing an optimized normalized model...";
     inv_opti := WPSNormalize(wgt, inv);
 
-    Append(~invs, inv_opti);
     vprint CM: "Computing better model...";        
     t, lambda := IsSquare(inv[1]/inv_opti[1]);
     if not t then
@@ -65,17 +76,18 @@ function FindCurveHyperelliptic(rosens)
         p := Parametrization(Con);
         f := E @@ p;
 
-        t, f_bis := IsCoercible(PolynomialRing(Rationals(), 4), f);
+        t, f_bis := IsCoercible(PolynomialRing(Rationals(), 2), f);
+        printf t;
         if not t then
             return f;
         else
-            return MinRedBinaryForm(f_bis);
+            return MinRedBinaryForm(f_bis), 0, true;
         end if;
 
     catch e 
         print "No parametrization found, try parametrizing Q using ConicParametrization (https://github.com/JRSijsling/hyperelliptic/blob/main/magma/toolbox/diophantine.m)";
         print "Mestre conic Q and f_5 returned";
-        return Q, E;
+        return Q, E, true;
     end try;
 
 end function;
@@ -95,19 +107,7 @@ function FindCurveNonHyperelliptic(Q, E : K := [Rationals()])
     inv, wgt := InvariantsGenus4Curves(Q, E);
     inv := Normalize(inv, wgt);
     ChangeUniverse(inv, ComplexField(5));
-    /*
-    if #inv eq 65 then // checks if it is actually rank 3 even if the precision is wrong
-        inv_rk3 := InvariantsGenus4Curves(X*T-Y*Z, (Y-Z)^3 : normalize := true);
-        if Max([Abs(CC!inv_rk3[i]-inv[i]) : i in [1..65]]) le 10^(-2) then // it is actually of rank 3
-            while #inv eq 65 do
-                CC<I> := ComplexField(Floor(3/4*Precision(CC)));
-                "New prec : ", Precision(CC);
-                Q := ChangeRing(Q, CC);
-                E := Parent(Q)!E;
-                inv, wgt := InvariantsGenus4Curves(Q,E);
-            end while;
-        end if;
-    end if;*/
+
     prec := Precision(Parent(inv[1]));
     F := RationalsExtra(prec);
 
@@ -115,16 +115,44 @@ function FindCurveNonHyperelliptic(Q, E : K := [Rationals()])
         "Rank 3 case";
         if Max([i : i->el in inv | el ne 0]) le 5 then 
             "Only sextic is non-zero";
+            return 2, 2, true;
             invs := WPSNormalize([2, 4, 6, 10], inv[1..4]);
             try 
                 "Trying LLL...";
                 L, invs_alg := NumberFieldExtra(invs, RationalsExtra(prec));
                 "LLL worked";
                 L;
-                return ReconstructionGenus4(invs_alg cat [0 : i in [1..56]]);
+                printf "De Jong-Noot : %o\n", true;
+                Q, E := ReconstructionGenus4(invs_alg cat [0 : i in [1..56]]);
+                return Q, E, true;
             catch e 
                 "LLL didn't work";
-                return 0,0;
+                return 0, 0, 0;
+            end try;
+        else
+            try 
+                if IsDeJongNoot(inv) then
+                    return 2, 2, true;
+                else
+                    return 2, 2, false;
+                    "Trying LLL sextic...";
+                    invs := WPSNormalize([2, 4, 6, 10], inv[1..4]);
+                    L, invs_alg := NumberFieldExtra(invs, RationalsExtra(prec));
+                    "LLL sextic worked";
+                    try 
+                        L1, invs_alg := NumberFieldExtra(inv, L);
+                        "LLL all worked";
+                        printf "De Jong-Noot : %o\n", IsDeJongNoot(invs_alg);
+                        Q, E := ReconstructionGenus4(invs_alg);
+                        return Q, E, IsDeJongNoot(invs_alg);
+                    catch e
+                        "LLL all didn't work";
+                        return 0,0,0;
+                    end try;
+                end if;
+            catch e 
+                "LLL didn't work, should try something more precise";
+                return 0,0,0;
             end try;
         end if;
 /* need to finish this to cover all cases
@@ -161,16 +189,18 @@ function FindCurveNonHyperelliptic(Q, E : K := [Rationals()])
             // todo
         end if;*/
    else
-        "Rank 4 case";    
+        "Rank 4 case";
+        return 2, 2, "rank 4";    
         try
             "Trying LLL...";
             L, inv_rec := NumberFieldExtra(inv, F);
-            return ReconstructionGenus4(inv_rec);
+            Q, E := ReconstructionGenus4(inv_rec);
+            return Q, E, IsDeJongNoot(inv_rec);
         catch e
             "LLL did not work...";
         end try;
     end if;
-    return 0, 0;
+    return 0,0,0;
 end function;
 
 // Input: taus, a Galois orbit of period matrices
@@ -184,11 +214,11 @@ function FindCurve(tau : prec := Precision(BaseRing(tau)), K := Rationals())
     
     vprint CM: "Checking if Jacobian...";
     sch := SchottkyModularForm(tau_red : prec := (prec div 3), flint := true);
-    RealField(10)!Abs(sch);
-    prec;
+    RealField(5)!Abs(sch);
     if Abs(sch) gt 10^(-prec/4) then
+        //Abs(SchottkyModularForm(SiegelReduction(tau_red) : prec := 50, flint := false));
         vprint CM: "Not a jacobian.";
-        return 0, 0;
+        return 0, 1, 0;
     end if;
     vprint CM: "It is probably a jacobian.";
     vprint CM: "Norm of the Schottky modular form: %o\n", Abs(sch);
@@ -197,7 +227,8 @@ function FindCurve(tau : prec := Precision(BaseRing(tau)), K := Rationals())
 
     if #Eqs eq 7 then // hyperelliptic case
         vprint CM: "Hyperelliptic case";
-        return FindCurveHyperelliptic(Eqs), 0;
+        return 1, 0, "hyp";
+        //return FindCurveHyperelliptic(Eqs), 0;
     elif #Eqs eq 2 then
         vprint CM: "Non-hyperelliptic curve";
         Q, E := Explode(Eqs);
@@ -227,4 +258,13 @@ for l in L_fields do
         end if;
     end for;
 end for;
+*/
+
+/*
+R<lambda, mu> := PolynomialRing(Rationals(), 2);
+S<x,y,z,t> := PolynomialRing(R, 4);
+
+Q := x*z-y^2;
+E := mu*x^2*y-t*(t-z)*(t-lambda*z);
+InvariantsGenus4Curves(Q,E);
 */

@@ -30,7 +30,7 @@ intrinsic SiegelReduction(tau::AlgMatElt) -> Any
   e := RR!0;
 
   vprint Theta: "Entering while loop";
-  while e le 1 do
+  while e lt 1 do
     Y := Imaginary(tau);
     Y := (Y + Transpose(Y))/2; // make sure matrix is symmetric
     T := Cholesky(Y);
@@ -66,15 +66,16 @@ intrinsic SiegelReduction(tau::AlgMatElt) -> Any
 
     B := Parent(X)!0;
     for i := 1 to Nrows(B) do
-      for j := 1 to Ncols(B) do
+      for j := i to Ncols(B) do
         B[i,j] := Round(X[i,j]);
+        B[j,i] := B[i,j];
       end for;
     end for;
     tau -:= ChangeRing(B,CC);
     Gamma := VerticalJoin(HorizontalJoin(IdentityMatrix(RR,g), -B), HorizontalJoin(ZeroMatrix(RR,g,g), IdentityMatrix(RR,g)))*Gamma;
     e := Abs(tau[1,1]);
     vprintf Theta: "Now e = %o\n", e;
-    if e gt 1 then
+    if e ge 1 then
       return tau, MatrixRing(Integers(),2*g)!Gamma;
     else
       Gamma := quasi_inversion*Gamma;
@@ -148,7 +149,7 @@ intrinsic SchottkyModularFormFlint(tau::AlgMatElt : prec := -1) -> Any
   
   tau_prec := MatrixAlgebra(C, Nrows(tau))!tau;
   thetas := ThetaFlint(char, z, tau);
-  if #thetas eq 1 then
+  if Type(thetas) eq MonStgElt then
     return 1;
   end if;
   pis := [C | 1,1,1];
