@@ -6,12 +6,15 @@ intrinsic FullEnumerationG4(f::RngUPolElt : prec := 300, exp := Infinity(), FixC
 /* Global structures */
 F := RationalsExtra(prec); CC := F`CC; R<x> := PolynomialRing(F);
 K := NumberFieldExtra(f : prec := prec);
+//printf "K done";
 Phis := AllCMTypesUpToEquivalence(K : Primitive := true);
+//printf "Phis done";
 //Phis := AllCMTypes(K : Primitive := true);
 precsmall := 50; CCSmall := ComplexFieldExtra(precsmall);
 
 /* Determine totally real subfield and corresponding involution */
 test, tup, inv := IsCMField(K);
+//printf "IsCMField done";
 K0, hK0K := Explode(tup);
 assert inv(inv(K.1)) eq K.1;
 K0sub := sub< K | hK0K(K0.1) >;
@@ -19,16 +22,20 @@ K0sub := sub< K | hK0K(K0.1) >;
 /* Determine class group */
 ZZK := Integers(K);
 Diff := Different(ZZK);
+//printf "Diff computed";
 //aas := ClassGroupSmallRepresentatives(ZZK, exp);
 //vprint CMExp, 1 : "Done determining small representatives of class group!", #aas;
 
 /* Determine unit group quotients */
 U, phiU := UnitGroup(ZZK : GRH := true);
+//printf "Unit group done";
 //for i in [1..NumberOfGenerators(U)] do print [ EmbedExtra(phiU(U.1) : iota := inf) : inf in InfinitePlacesExtra(K) ]; end for;
 gensU := Generators(U);
+//printf "generators U done";
 gensV := [ (phiU(gen)*inv(phiU(gen))) @@ phiU : gen in gensU ];
 V := sub< U | gensV >;
 Q, pQ := quo< U | V >;
+//printf "quotients done";
 vprint CMExp, 1 : "Done determining quotient of unit group!", #Q;
 
 /* Now follow Streng's method */
@@ -41,12 +48,14 @@ for aa in aas do
 
     /* Need generator; can also exclude fields with i here */
     test1, xi0 := IsPrincipal((aa*aabar*Diff)^(-1));
+    //printf "is principal done";
     if not test1 then
         vprint CMExp, 1 : "Stopping at test1";
         continue;
     end if;
     //print [ EmbedExtra(xi0 : iota := inf) : inf in InfinitePlacesExtra(K) ];
 
+    comp := 0;
     for q in Q do
         u := q @@ pQ; xi := K ! (phiU(u)*xi0);
 
@@ -70,6 +79,7 @@ for aa in aas do
             end if;
         end for;
         if not test3 then
+            //"test3";
             vprint CMExp, 1 : "Stopping at test3";
             continue;
         end if;
