@@ -7,67 +7,258 @@ AttachSpec("~/github/cm-calculations/magma/spec");
 AttachSpec("~/github/reconstructing-g4/magma/spec");
 load "~/lmfdb_8t13.m";
 load "~/github/Genus-4-RM-CM/CM/minimize.m";
-
+load "~/github/Genus-4/magma/gordan-10.dat";
+load "~/github/Genus-4/magma/invS10.m";
 SetDebugOnError(true);
+//SetVerbose("CM", 1);
+
 load "~/github/Genus-4-RM-CM/CM/full_proc.m";
+load "~/Decomposition/reconstruction_hyp_special2.m";
+load "~/Decomposition/Evaluation_interpolation.m";
+load "~/invs1.m";
+
+str := Read("~/github/Genus-4-RM-CM/CM/curves_class_8t13.txt");
+str := Split(str, "\n");
+list_str := [Split(l, "|") : l in str];
+list_labels := Multiset([l[1] : l in list_str | l[2] eq "false"]);//, "Not able to recognize invariants"]]); // we keep only the ones we're interested in
+list_labels := Setseq(Set([l : l in list_labels | Multiplicity(list_labels, l) eq 3]));// | Multiplicity(list_labels, l) eq 3])); // we keep only the ones with 3 period matrices
+
+function invs_rec(I)
+  a11 := I[3];
+  a12 := 1/3*(-1/3*I[1]^2*I[2] + I[1]*I[3] + 2*I[2]^2);
+  a13 := 1/54*I[1]^3*I[2] - 1/18*I[1]^2*I[3] - 1/9*I[1]*I[2]^2 + 1/3*I[2]*I[3] + 1/2*I[4];
+  a22 := 1/54*I[1]^3*I[2] - 1/18*I[1]^2*I[3] - 1/9*I[1]*I[2]^2 + 1/3*I[2]*I[3] + 1/2*I[4];
+  a23 := 1/3*(-1/6*I[1]^2*I[2]^2 + 1/3*I[1]*I[2]*I[3] + I[2]^3 + 1/2*I[3]^2);
+  a33 := 1/2*(5/162*I[1]^3*I[2]^2 - 7/54*I[1]^2*I[2]*I[3] - 5/27*I[1]*I[2]^3 + 1/9*I[1]*I[3]^2 + 5/9*I[2]^2*I[3] + 1/2*I[2]*I[4]);
+
+  v11 := I[24];
+  v12 := I[43];
+  v13 := -1/18*I[1]^2*I[2]*I[8] + 1/12*I[1]*I[3]*I[8] + 1/3*I[2]^2*I[8] + 1/4*I[2]*I[24] + 1/4*I[3]*I[13] - 1/2*I[54];
+  v22 := I[54];
+  v23 := 1/54*I[1]^3*I[2]*I[8] - 1/36*I[1]^2*I[2]*I[13] - 1/18*I[1]^2*I[3]*I[8] -
+          1/9*I[1]*I[2]^2*I[8] + 1/36*I[1]*I[2]*I[24] + 1/12*I[1]*I[3]*I[13] +
+          1/6*I[2]^2*I[13] + 1/6*I[2]*I[3]*I[8] - 1/12*I[3]*I[24] + 1/4*I[4]*I[8];
+  v33 := -1/324*I[1]^4*I[2]*I[8] + 1/108*I[1]^3*I[2]*I[13] + 1/108*I[1]^3*I[3]*I[8] -
+          1/27*I[1]^2*I[2]^2*I[8] - 1/36*I[1]^2*I[3]*I[13] - 1/18*I[1]*I[2]^2*I[13] +
+          1/18*I[1]*I[2]*I[3]*I[8] + 1/9*I[1]*I[2]*I[43] - 1/12*I[1]*I[4]*I[8] +
+          1/3*I[2]^3*I[8] + 1/6*I[2]*I[3]*I[13] - 1/2*I[2]*I[54] + 1/6*I[3]^2*I[8] -
+          1/3*I[3]*I[43] + 1/4*I[4]*I[13];
+
+  f111 := I[4];
+  f112 := 1/3*(1/54*I[1]^4*I[2] - 1/18*I[1]^3*I[3] - 2/9*I[1]^2*I[2]^2 + 1/3*I[1]*I[2]*I[3] + 1/2*I[1]*I[4] + 2/3*I[2]^3 + I[3]^2);
+  f113 := 1/3*(-1/6*I[1]^2*I[2]*I[3] + 1/2*I[1]*I[3]^2 + I[2]^2*I[3] + 1/2*I[2]*I[4]);
+  f122 := 1/3*(-1/6*I[1]^2*I[2]*I[3] + 1/2*I[1]*I[3]^2 + I[2]^2*I[3] + 1/2*I[2]*I[4]);
+  f123 := 1/3*(1/108*I[1]^4*I[2]^2 - 1/36*I[1]^3*I[2]*I[3] - 1/9*I[1]^2*I[2]^3 + 1/6*I[1]*I[2]^2*I[3] + 1/12*I[1]*I[2]*I[4] +
+          1/3*I[2]^4 + 1/2*I[2]*I[3]^2 + 1/2*I[3]*I[4]);
+  f133 := 1/3*(-1/972*I[1]^5*I[2]^2 + 1/162*I[1]^4*I[2]*I[3] + 1/81*I[1]^3*I[2]^3 - 1/108*I[1]^3*I[3]^2 - 5/36*I[1]^2*I[2]^2*I[3]
+            - 1/36*I[1]^2*I[2]*I[4] - 1/27*I[1]*I[2]^4 + 1/4*I[1]*I[2]*I[3]^2 + 1/12*I[1]*I[3]*I[4] + 11/18*I[2]^3*I[3] +
+          1/4*I[2]^2*I[4] + 1/6*I[3]^3);
+  f222 := 1/3*(1/36*I[1]^4*I[2]^2 - 1/6*I[1]^3*I[2]*I[3] - 1/3*I[1]^2*I[2]^3 + 1/4*I[1]^2*I[3]^2 + I[1]*I[2]^2*I[3] +
+            1/12*I[1]*I[2]*I[4] + I[2]^4 - 1/4*I[3]*I[4]);
+  f223 := -1/729*I[1]^5*I[2]^2 + 2/243*I[1]^4*I[2]*I[3] + 4/243*I[1]^3*I[2]^3 - 1/81*I[1]^3*I[3]^2 - 2/27*I[1]^2*I[2]^2*I[3]
+          - 1/27*I[1]^2*I[2]*I[4] - 4/81*I[1]*I[2]^4 + 1/12*I[1]*I[2]*I[3]^2 + 1/9*I[1]*I[3]*I[4] + 4/27*I[2]^3*I[3] +
+          1/4*I[2]^2*I[4] - 1/36*I[3]^3;
+  f233 := 1/5832*I[1]^6*I[2]^2 - 1/972*I[1]^5*I[2]*I[3] - 1/1944*I[1]^4*I[2]^3 + 1/648*I[1]^4*I[3]^2 +
+          1/324*I[1]^3*I[2]^2*I[3] + 1/108*I[1]^3*I[2]*I[4] - 1/81*I[1]^2*I[2]^4 - 1/216*I[1]^2*I[2]*I[3]^2 -
+          1/36*I[1]^2*I[3]*I[4] + 1/54*I[1]*I[2]^3*I[3] - 11/216*I[1]*I[2]^2*I[4] + 1/18*I[2]^5 + 1/18*I[2]^2*I[3]^2 +
+          11/72*I[2]*I[3]*I[4] + 1/8*I[4]^2;
+  f333 := -1/1944*I[1]^5*I[2]^3 + 1/648*I[1]^4*I[2]^2*I[3] + 1/162*I[1]^3*I[2]^4 + 1/216*I[1]^3*I[2]*I[3]^2 -
+          1/54*I[1]^2*I[2]^3*I[3] - 13/648*I[1]^2*I[2]^2*I[4] - 1/72*I[1]^2*I[3]^3 - 1/54*I[1]*I[2]^5 -
+          1/72*I[1]*I[2]^2*I[3]^2 + 1/27*I[1]*I[2]*I[3]*I[4] + 1/18*I[2]^4*I[3] + 1/8*I[2]^3*I[4] + 1/24*I[2]*I[3]^3 +
+          5/72*I[3]^2*I[4];
+  res := [a11,a12,a13,a22,a23,a33,v11,v12,v13,v22,v23,v33,f111,f112,f113,f122,f123,f133,f222,f223,f233,f333];
+  wgt := [18,24,30,30,36,42, 20,26,32,32,38,44, 30,36,42,42,48,54,48,54,60,66];
+  
+  return res, wgt;
+end function;
+
+function Relations(invs, basis_weights)
+    prec := Precision(Parent(invs[1][1]));
+    m, n := Explode(<#basis_weights, #invs>); 
+    mat := Matrix([[Real(Power(inv, b)) : b in basis_weights] : i->inv in invs]);
+    //mat := Matrix([[mat[i][j]/mat[i][1] : j in [1..m]] : i in [1..n]]);
+
+    rank := NumericalRank(mat : Epsilon := RR!10^(-prec/2));
+    rank;
+    if rank ne #basis_weights-1 then
+      return [];
+    end if;
+    M := NumericalKernel(Transpose(mat) : Epsilon := RR!10^(-prec/2));
+    if Nrows(M) eq 1 then
+        M := Eltseq(M[1]);
+        if #M gt 1 then
+            if Abs(M[#M]) lt RR!10^(-prec/2) then
+              "Invariant not linearly dependent to the others";
+              return [];
+            else
+              return [BestApproximation(-M[i]/M[#M], 10^(3*prec div 4)) : i in [1..#M-1]];
+            end if;
+        end if;
+    end if;
+    return [];
+end function;
+
+list_curves := [];
+
+for l in list_labels do
+  d := data[Index([el[1] : el in data], l)];
+  R<x> := PolynomialRing(Rationals());
+  d[1];
+  coeffs := d[2];
+  R!coeffs;
+  taus := FullEnumerationG4(R!coeffs : prec := 3000);
+  taus := [t[1] : t in taus];
+  S<X,Y,Z,T> := PolynomialRing(BaseRing(Parent(taus[1])), 4);
+  for i in [1..#taus] do
+    tau_red := SiegelReduction(taus[i]);
+    Q, E := FindCurve(tau_red);
+    if Q ne 0 then
+      Append(~list_curves, [S!Q,S!E]);
+    end if;
+  end for;
+end for;
+
+invs := [];
+
+for i in [1..#list_curves] do
+  I_all, wgt_all := InvariantsGenus4Curves(list_curves[i][1], list_curves[i][2]);
+  I := [wgt_all[i] mod 2 eq 0 select I_all[i] else 0 : i in [1..#I_all]];
+  I := WPSNormalize(wgt_all, I);
+  Append(~invs, I);
+end for;
+
+wgt := wgt_all;
+
+ChangeUniverse([inv[6]/inv[1] : inv in invs], CC);
+
+invs0 := invs;
+wgt0 := [6,12,18,30,45,4,6,8,10,10,9,13,14,12,12,15,14,14,15,15,17,16,16,20,19,19,18,16,18,18,17,17,21,19,22,22,23,21,20,20,21,25,26,24,21,23,23,24,25,29,25,28,27,32,29,31,35,33,37,41];//wgt_all;
+
+//l := 1;
+ind := [1..60];
+//invs := [[inv[i] : i in ind] cat [invs_rec(inv)[l]] : inv in invs0];
+invs := [[inv[i] : i in ind] : inv in invs0];
+
+//wgtrec := [ 18, 24, 30, 30, 12, 14, 16, 18, 20, 20, 22, 24, 22, 24, 26, 28, 24, 26, 28, 30, 32, 26, 28, 30, 32, 34, 36 ];
+//wgt := [wgt0[i] : i in ind] cat [wgtrec[l]];
+wgt := [wgt0[i] : i in ind];
+
+//d := wgtrec[l];
+
+function i3(invs)
+  return (-24989524896/817400375*invs[1]^4+283164527296/36783016875*invs[1]^3*invs[7]-201946018576/2979424366875*invs[1]^2*invs[6]^3+10643356864/2150921334375*invs[1]*invs[6]^3*invs[7]-46425728/2150921334375*invs[6]^6)/(invs[1]-28/135*invs[7]);
+end function;
+
+function i7_sq(invs)
+  return 91125/748*invs[1]^2-4995/187*invs[1]*invs[7]+81/374*invs[6]^3;
+end function;
+
+function i3(invs)
+  return (-24989524896/817400375*invs[1]^4+283164527296/36783016875*invs[1]^3*invs[7]-201946018576/2979424366875*invs[1]^2*invs[6]^3+10643356864/2150921334375*invs[1]*invs[6]^3*invs[7]-46425728/2150921334375*invs[6]^6)/(invs[1]-28/135*invs[7]);
+end function;
+
+function i7mod_sq(invs)
+  return 10497600/34969*invs[1]^2+81/374*invs[6]^3;
+end function;
 
 /*
-d := data[10];
-taus := FullEnumerationG4(R!coeffs : prec := 2000);
-tau := [t[1] : t in taus];
-tau_red := SiegelReduction(tau[1]);
-inv := FindCurve(tau_red);
-
-AttachSpec("~/github/Reconstruction/magma/spec");
-
-QQ1 := RationalsExtra(2000);
-inv1 := ChangeUniverse(WPSNormalize([1,2,3,5],inv[1..4]), ComplexField(2000));
-inv2 := ChangeUniverse(WPSNormalize([2,3], inv[6..7]), ComplexField(2000));
-wgt := [6,12,18,30,45,4,6,8,10,10,9,13,14,12,12,15,14,14,15,15,17,16,16,20,19,19,18,16,18,18,17,17,21,19,22,22,23,21,20,20,21,25,26,24,21,23,23,24,25,29,25,28,27,32,29,31,35,33,37,41];
-
-inv0 := ChangeUniverse(inv, ComplexField(2000));
-inv0 := WPSMultiply(wgt, inv0, (inv0[6]/inv0[1])^(1/2));
-L, inv_alg := NumberFieldExtra([(wgt[i] mod 2) eq 0 select inv else 0 : i->inv in inv0], QQ1);
-
-SetVerbose("Reconstruction", 1);
-
-Q, E := ReconstructionGenus4(inv_alg);
-Q1, E1 := MinimizeQuadric(Q,E);
-
-inv1 := ChangeUniverse(WPSNormalize([1,2,3,5],inv[1..4]), ComplexField(2000));
-CC<I> := Universe(inv0);
-
-inv2 := inv0[6..7];
-inv2 := WPSMultiply(wgt[6..7], inv2, Exp(4*I*Pi(CC)/3));
-L, inv_alg := NumberFieldExtra(inv1,QQ1);
-L2, inv_alg2 := NumberFieldExtra(inv2,QQ1);
-
-f := HyperellipticPolynomials(HyperellipticCurveFromIgusaInvariants(OliveToIgusa(inv_alg) : minimize := true));
-
-ReconstructionGenus4(inv_alg cat [0 : i in [1..56]]);
-
-Polredabs(MinimalPolynomial(inv1[4], 4));
-
-
-_<x> := PolynomialRing(RationalsExtra(2000));
-L<nu> := NumberFieldExtra(x^3-3*x-1 : prec := 2000);
-AlgebraizeElementsExtra(inv1,L);
-
+S<x,y> := PolynomialRing(QQ, 2);
+R<x,y,z,t> := PolynomialRing(QQ, 4);
+i1 := t*(x-28/135*z)-(-24989524896/817400375*x^4+283164527296/36783016875*x^3*z-201946018576/2979424366875*x^2*y^3+10643356864/2150921334375*x*y^3*z-46425728/2150921334375*y^6);
+i2 := z^2-(91125/748*x^2-4995/187*x*z+81/374*y^3);
+i4 := y^6*z-(-1316158875415125/1085201392*x^5+164523172629375/542600696*x^4*z+8497801809045/1381165408*x^3*y^3-377331413765625/1299920384*x^2*t-552080810475/271300348*x^2*y^3*z+8602435278/474775609*x*y^6+48309463125/23212864*t*y^3);
+I := Ideal([i1,i2,i4]);
 
 */
 
-//Write("curves_class.txt", "" : Overwrite := true);
-for d in data[2686..#data] do
-  if d[5] ne [] then
+invs0 := invs;
+wgt0 := [6,12,18,30,45,4,6,8,10,10,9,13,14,12,12,15,14,14,15,15,17,16,16,20,19,19,18,16,18,18,17,17,21,19,22,22,23,21,20,20,21,25,26,24,21,23,23,24,25,29,25,28,27,32,29,31,35,33,37,41];//wgt_all;
+
+[ChangeUniverse([invs0[i][6]^3/(invs0[i][6]^3-27*invs0[i][7]^2)], ComplexField(8)) : i in [1..60]];
+
+
+l := 6;
+ind := [1,3,6,7];
+invs := [[inv[i] : i in ind] cat [invs_rec(inv)[l]]: inv in invs0];
+wgtrec := [18,24,30,30,36,42, 20,26,32,32,38,44, 30,36,42,42,48,54,48,54,60,66];
+wgt := [wgt0[i] : i in ind] cat [wgtrec[l]];
+
+d := wgtrec[l];
+
+basis_weights := DegreeDBasisWeights(wgt, d);
+basis := [NormalForm(R!Power([x,t,y,z], b[1..#b-1]), I) : b in basis_weights[1..#basis_weights-1]];
+basis_weights := [basis_weights[i] : i in [1..#basis_weights-1] | #Monomials(basis[i]) eq 1] cat [basis_weights[#basis_weights]];
+
+//basis_weights := [b : b in basis_weights | b[Index(ind, 3)] le 1 and b[Index(ind, 7)] le 1 and b[Index(ind, 7)]*b[Index(ind, 3)] eq 0 and (b[Index(ind, 7)] ne 1 or (b[Index(ind, 6)] mod 6 ne 0 or b[Index(ind, 6)] eq 0))];
+//basis_weights := 
+
+#basis_weights;
+
+rel := Relations(invs, basis_weights);
+rel := [(r ne 0) select (Sprint(r)[1] eq "-" select Sprint(r) else "+" cat Sprint(r)) else "" : r in rel];
+pol := [&cat["*X[" cat Sprint(ind[i]) cat "]^" cat Sprint(basis_weights[d][i]) : i in [1..#ind] | basis_weights[d][i] ne 0] : d in [1..#basis_weights-1]];
+&cat[(rel[i] ne "") select rel[i] cat pol[i] else "" : i in [1..#pol]];
+//basis_weights;
+
+//6^3, 
+//4^5,6*4^3,6*4^3,6^3*(6/4)
+d := 12;
+ind := [6,7];
+invs := [[inv[i] : i in ind] : inv in invs0];
+//for i in [1..#invs] do
+//  invs[i][Index(ind, 7)] +:= 4995/374*invs[i][1]; 
+//end for;
+wgt := [wgt0[i] : i in ind];
+basis_weights := DegreeDBasisWeights(wgt, d);
+basis_weights := [b : b in basis_weights | b[2] le 1];
+#basis_weights;
+
+rel := Relations(invs, basis_weights);
+rel := [Sprint(r)[1] eq "-" select Sprint(r) else "+" cat Sprint(r) : r in rel];
+pol := [&cat["*X[" cat Sprint(ind[i]) cat "]^" cat Sprint(basis_weights[d][i]) : i in [1..#ind] | basis_weights[d][i] ne 0] : d in [1..#basis_weights-1]];
+&cat[rel[i] cat pol[i] : i in [1..#pol]];
+
+
+f := x^2*z^3-54675/392*y^2*x^2-165350706912/32696015*y^5*x+23614191424/780704780625*y*x*z^6+11546288733332/360473565375*y^3*x*z^3;
+I := Ideal([z^3-54675/392*y^2]);
+NormalForm(f, I);
+//18 : dim 5 4 5
+//20 : dim 4 3 3
+//22 : dim 5 4 5
+//24 : dim 6 5 6 (relation)
+//26 : dim 5 4 5
+//28 : dim 6 5 6 (relation)
+//30 : 
+
+//[basis_weights[1]] cat [basis_weights[4]] cat [basis_weights[10]]
+// qd renormalisé, inv1 = inv6, et sinon on peut essayer d'en trouver un autre qui a une relation avec eux de plus haut degré
+
+Relations(invs, [basis_weights[1]] cat [basis_weights[2]] cat [basis_weights[4]] cat [basis_weights[6]] cat [basis_weights[10]]);
+Relations(invs,  [[-1,0,0,0,0,3] cat [0 : i in [7..60]]] cat [[-4,0,0,0,0,6] cat [0 : i in [7..60]]] cat [[0,0,0,0,0,0,1] cat [0 : i in [8..60]]]);
+
+    //Write("invariants_hyp.m", Sprint(d[1]) cat "|" cat Sprint(R!DefiningPolynomial(Rationals())) cat "|" cat Sprint(res) cat "|");
+    
+   // L0, invs := NumberFieldExtra(invsCC0[1..7], NumberFieldExtra(R![1,-2,-1,1] : prec := 5000));
+    //L, invs := NumberFieldExtra(invsCC0, L0);
+   // invs1 := WPSNormalize(wgteven[1..7], invs);
+   // invs1;
+
+   // Write("invariants_hyp.m", Sprint(d[1]) cat "|" cat Sprint(R!DefiningPolynomial(L0)) cat "|" cat Sprint(invs1) cat "|");
+//  end if;
+//end for;
+
+
+//for d in data do
+  if d[5] ne [] and d[1] in L then
     R<x> := PolynomialRing(Rationals());
     d[1];
     coeffs := d[2];
     R!coeffs;
-    taus := FullEnumerationG4(R!coeffs : prec := 2000);
+    taus := FullEnumerationG4(R!coeffs : prec := 5000);
     tau := [t[1] : t in taus];
     for i in [1..#tau] do 
       tau_red := SiegelReduction(tau[i]);
-      Q, E, djn := FindCurve(tau_red);
+      f := FindCurve(tau_red);//Q, E, djn := FindCurve(tau_red);
       if E eq 0 then
         if Q ne 0 then
           S := Parent(Q);
@@ -76,9 +267,9 @@ for d in data[2686..#data] do
           catch e
             K := Rationals();
           end try;
-          Write("curves_class_8t13.txt", Sprint(d[1]) cat "|" cat Sprint(djn) cat "|" cat Sprint(R!DefiningPolynomial(K)) cat "|" cat Sprint(Q) cat "|");
+          //Write("curves_class_8t13.txt", Sprint(d[1]) cat "|" cat Sprint(djn) cat "|" cat Sprint(R!DefiningPolynomial(K)) cat "|" cat Sprint(Q) cat "|");
         else
-          Write("curves_class_8t13.txt", Sprint(d[1]) cat "|Not able to recognize invariants");
+          //Write("curves_class_8t13.txt", Sprint(d[1]) cat "|Not able to recognize invariants");
         end if;
       elif E ne 1 then
         "yay!";
@@ -100,26 +291,20 @@ for d in data[2686..#data] do
       end if;
     end for;
   end if;
-end for;
+//end for;
 
 
-Eqs := ChangeUniverse(Eqs, ComplexFieldExtra(20000));
-L, ros := NumberFieldExtra(Eqs, RationalsExtra(20000));
+R<c0,c1,c2,c3,c4,c5,c6,d0,d1,d2,d3,d4,a,b> := PolynomialRing(QQ, 14); 
+S<x,y,t> := PolynomialRing(R, 3);
 
+//f := x^3+x+t^7+b;
+f := y^2-(x^3+x+t^7-7*1*t^5+14*1^2*t^3-7*1^3*t+1);
 
-S<x> := PolynomialRing(Universe(Eqs));
-f := x*(x-1)*&*[x-r : r in Eqs];
-L, ros := NumberFieldExtra(Coefficients(f), RationalsExtra(20000));
-f := Evaluate(f, x-1/9*MonomialCoefficient(f, x^8));
-u := MonomialCoefficient(f, x^7)^(1/2);
-f1 := 1/u^9*Evaluate(f, u*x);
-L, ros := NumberFieldExtra(Coefficients(f1), RationalsExtra(20000));
+//f1 := Evaluate(f, [d0+d1*t+d2*t^2+d3*t^3+1*t^4,(3/4*d1^2+3/2*d0*d2-1/8*d2^3-3/4*d1*d2*d3-3/8*d0*d3^2+9/32*d2^2*d3^2+3/16*d1*d3^3-15/128*d2*d3^4+7/512*d3^6-3/2*d3)/2+(3/2*d1*d2+3/2*d0*d3-3/8*d2^2*d3-3/8*d1*d3^2+3/16*d2*d3^3-3/128*d3^5+1)/2*t+(3*d0+3/4*d2^2+3/2*d1*d3-3/8*d2*d3^2+3/64*d3^4)/2*t^2+(3*d1+3/2*d2*d3-1/8*d3^3)/2*t^3+(3*d2+3/4*d3^2)/2*t^4+3/2*d3*t^5+1*t^6,t]); 
+f1 := Evaluate(f, [d0+d1*t+d2*t^2+d3*t^3+d4*t^4,c0+c1*t+c2*t^2+c3*t^3+c4*t^4+c5*t^5+c6*t^6,t]); 
+f1;
 
+I := Ideal(Coefficients(f1));
+EliminationIdeal(I, 13);
 
-R := ProductProjectiveSpace(RationalsExtra(60), [1, 1]); 
-S<x,y,u,v> := CoordinateRing(R);
-M := [m : m in MonomialsOfDegree(S, 6) | Degree(m, x)+Degree(m, y) eq Degree(m, u)+Degree(m, v)];
-f := &+[Random(5)*m : m in M];
-
-C := Curve(R, f);
-time P := PeriodMatrix(C);
+GroebnerBasis(Coefficients(f1), 5);

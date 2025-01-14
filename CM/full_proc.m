@@ -42,6 +42,9 @@ function IsDeJongNoot(inv)
 end function;
 
 function FindCurveHyperelliptic(rosensCC) // Fix me warning
+    K<x,y> := PolynomialRing(Universe(rosensCC),2);
+    return y*x*(x-y)*(&*[x-r*y : r in rosensCC]);
+
     prec := Precision(Parent(rosensCC[1]));
     K := RationalsExtra(prec);
     L, rosens := NumberFieldExtra(rosensCC, K);
@@ -106,7 +109,7 @@ function FindCurveNonHyperelliptic(Q, E : K := [Rationals()])
     CC<I> := BaseRing(CC4);
     inv, wgt := InvariantsGenus4Curves(Q, E);
     inv := Normalize(inv, wgt);
-    ChangeUniverse(inv, ComplexField(5));
+    //ChangeUniverse(inv, ComplexField(5));
 
     prec := Precision(Parent(inv[1]));
     F := RationalsExtra(prec);
@@ -227,17 +230,19 @@ function FindCurve(tau : prec := Precision(BaseRing(tau)), K := Rationals())
 
     if #Eqs eq 7 then // hyperelliptic case
         vprint CM: "Hyperelliptic case";
-        return 1, 0, "hyp";
-        //return FindCurveHyperelliptic(Eqs), 0;
+        //return 1, 0, "hyp";
+        return FindCurveHyperelliptic(Eqs), 0;
     elif #Eqs eq 2 then
         vprint CM: "Non-hyperelliptic curve";
         Q, E := Explode(Eqs);
+        return Q, E;
         //K;
-        return FindCurveNonHyperelliptic(Q, E : K := K);
+        Q, E, djn := FindCurveNonHyperelliptic(Q, E : K := K);
+        return Q, E, djn;
     end if;
 
     vprint CM: "Not the right number of equations, error in reconstructing-g4 package";
-    return 0, 0;
+    return 0, 0, 0;
 end function;
 
  
@@ -268,3 +273,102 @@ Q := x*z-y^2;
 E := mu*x^2*y-t*(t-z)*(t-lambda*z);
 InvariantsGenus4Curves(Q,E);
 */
+
+// Shimura curves
+function IsOnShimuraHyp(f : epsilon := Precision(BaseRing(Parent(f))) div 2)
+    invs_f, wgt := InvariantsGenus4Curves(f);
+    wgt_even := [w : w in wgt | w mod 2 eq 0];
+    invs_even := [inv : i->inv in invs_f | wgt[i] mod 2 eq 0]; 
+    invs_norm := Normalize(invs_even, wgt_even);
+    mu := invs_norm[4];
+    invs_shim := 
+    [0,
+    0,
+    8/225*mu,
+    mu,
+    9555/1552661*mu,
+    -136/7425*mu,
+    -136/7425*mu,
+    22321/1111320*mu,
+    41905/373527*mu,
+    -1088/121275*mu,
+    32453/271656*mu,
+    9378917/16180819200*mu,
+    -80580799/82771113600*mu,
+    3965075087/373776923520*mu,
+    -10106041/343429632000*mu,
+    6679079/135136512000*mu,
+    8415/33575584*mu,
+    6432239/92989769600*mu,
+    2964307/10679340672*mu,
+    799098587/649689064113375*mu^2,
+    -35403551/965268798243750*mu^2,
+    -737872919/3467287952689275*mu^2,
+    104367704/1449535097278125*mu^2 - 27781896571/2628148399027200*mu,
+    202166944/543307229053875*mu^2 - 47535787/533045971584*mu,
+    24971192/1353269001459375*mu^2 - 1527999253/419581586511360*mu,
+    -13955952/19843977993125*mu^2 + 82387485713/827109665907840*mu,
+    -33747224/55202338780875*mu^2 - 6182478247/708951142206720*mu,
+    45834047/222225660421875*mu^2 - 38197116529/1618258041993600*mu,
+    88783492/83293469758125*mu^2 - 91289913/875248323712*mu,
+    -112232344/6243925288535*mu^2 + 8403525/51353855728*mu,
+    59920516/113310063813375*mu^2 - 146795/4506427296*mu,
+    -61538022538343/300181687280798400000*mu^2 + 21026458789611847/4307290703943769350144*mu,
+    419176166767579/550333093348130400000*mu^2 - 2817979013040763/89735222998828528128*mu,
+    17360603883629/83274086493467100000*mu^2 + 1125455259401629/27156712223329686144*mu,
+    92179526694239/150090843640399200000*mu^2 - 52350137286370495/2153645351971884675072*mu,
+    1397787163426537/1284110551145637600000*mu^2 - 8124306944780585/209382186997266565632*mu,
+    1918564676253251/22623693164729506080000*mu^2 - 57104093245637555/11934784658844194241024*mu,
+    36255126482249/431511175466147700000*mu^2 + 88287259051679129/24766921547676673763328*mu,
+    1096637001599/35086171240612800000*mu^2 + 402739710504703/1926241805490381324288*mu,
+    -5117181688447/64324647274456800000*mu^2 - 53975425119187/40130037614382944256*mu,
+    -20211972884261/126533352204359100000*mu^2 + 21556912169221/12144616646457996288*mu,
+    -15266198370251/228060113063983200000*mu^2 - 1002711837811255/963120902745190662144*mu,
+    -19578822922741/150090843640399200000*mu^2 - 155612557479665/93636754433560203264*mu,
+    -9230069858983/327836412529475850000*mu^2 + 1691049620266721/11075890381569692614656*mu,
+    169805623/20391829387776000*mu^2,
+    -89401/105931581235200*mu^2,
+    237610238567/1567601492355892224000*mu^2,
+    -1524484215210463/6342919314726500352000*mu^2,
+    -7661196259085981/74138017964335718400000*mu^2,
+    -7753465235717563/14684835500764910910000000*mu^3 + 960201643633802107/1494684528918996602880000*mu^2];
+    RealField(10)!Max([Abs(invs_shim[i]-invs_norm[i]) : i in [1..#invs_shim]]);
+    return Max([Abs(invs_shim[i]-invs_norm[i]) : i in [1..#invs_shim]]) lt epsilon;
+end function;
+
+
+function GetMu(f)
+  c3 := Transvectant(f, f, 8);
+  c4 := Transvectant(f, f, 6);
+  c5 := Transvectant(f, f, 4);
+  c6 := Transvectant(f, f, 2);
+  c7 := Transvectant(c4, f, 8);
+  c9 := Transvectant(c5, f, 8);
+  c12 := Transvectant(c6, f, 7);
+  c22 := Transvectant(c12, f, 9);
+
+  i4 := Transvectant(c7, c7, 2);
+  i6 := Transvectant(c3*c9, f, 10);
+  i7 := Transvectant(c9*c22, f, 10);
+  inv := Evaluate(i4*(i6/i7)^3, [0,0]);
+  
+  _, L := NumberFieldExtra([inv], NumberFieldExtra(PolynomialRing(Rationals())![1,-2,-1,1] : prec := Precision(Parent(inv))));
+  
+  return 1/46814919504949789567799425*(L[1]-359165724775/3794886144);
+end function;
+
+function GetShimuraCurve(mu)
+  S<X,Y> := PolynomialRing(Parent(mu), 2);
+  return (-1432353454804332119596592722603696979968*mu - 4886589248453472)*X^10 - 309519*X^9*Y + 9851363924882199552*mu*X^8*Y^2 + (-104516331448118333562141904207872*mu^2 + 118855296*mu)*X^7*Y^3 - 2837192810366073470976*mu^2*X^6*Y^4 - 17115162624*mu^2*X^5*Y^5 - 90790169931714351071232*mu^3*X^4*Y^6 - 1408333381632*mu^3*X^3*Y^7 - 26288889790464*mu^4*X*Y^9;
+end function;
+
+function GetShimuraCurve(f)
+  try 
+    mu := GetMu(f);
+  catch e
+    "Not enough precision, try again.";
+    return 0;
+  end try;
+  S<X,Y> := PolynomialRing(Parent(mu), 2);
+  return (-1432353454804332119596592722603696979968*mu - 4886589248453472)*X^10 - 309519*X^9*Y + 9851363924882199552*mu*X^8*Y^2 + (-104516331448118333562141904207872*mu^2 + 118855296*mu)*X^7*Y^3 - 2837192810366073470976*mu^2*X^6*Y^4 - 17115162624*mu^2*X^5*Y^5 - 90790169931714351071232*mu^3*X^4*Y^6 - 1408333381632*mu^3*X^3*Y^7 - 26288889790464*mu^4*X*Y^9;
+end function;
