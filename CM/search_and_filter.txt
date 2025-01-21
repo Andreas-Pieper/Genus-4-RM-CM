@@ -1,0 +1,31 @@
+results = []
+for p in db.hgcwa_passports.search({'genus':{'$gte':4}, 'g0':0}, projection=['label', 'group', 'jacobian_decomp']):
+    for el in p['jacobian_decomp']:
+        if el[0] == 4:
+            results.append(p)
+
+good := [];
+file := Open("higher_genus_results.txt", "r");
+eof := false;
+while not eof do
+  line := Gets(file);
+  if IsEof(line) then
+    eof := true;
+    break;
+  end if;
+  label, group, jacobian_decomp := Explode(Split(line, "|"));
+  group := eval group;
+  jacobian_decomp := eval jacobian_decomp;
+  for triple in jacobian_decomp do
+    if triple[1] ne 4 then
+      continue;
+    end if;
+    G := SmallGroup(group[1], group[2]);
+    chi := CharacterTable(G)[triple[3]];
+    rat_bool := &and[el in Rationals() : el in Eltseq(chi)]; 
+    if rat_bool and (SchurIndex(chi) eq 1) then
+      print label;
+      Append(~good, label);
+    end if;
+  end for;
+end while;
