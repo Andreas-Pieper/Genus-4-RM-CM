@@ -29,3 +29,28 @@ while not eof do
     end if;
   end for;
 end while;
+
+dim1 := [];
+file := Open("hgcwa_results_filtered.txt", "r");
+eof := false;
+while not eof do
+  line := Gets(file);
+  if IsEof(line) then
+    eof := true;
+    break;
+  end if;
+  spl := Split(line, ".");
+  dash := Split(spl[4], "-");
+  if #dash eq 4 then
+    Append(~dim1, line);
+  end if;
+end while;
+
+perms := [];
+for quad in conjs do
+  p := [];
+  for c in quad do
+    Append(~p,CycleStructure(iota(classes[c][3])));
+  end for;
+  Append(~perms,p);
+end for;
