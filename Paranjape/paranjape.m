@@ -58,6 +58,7 @@
   //Pullback with respect to the involution
   f2pri := Evaluate(Numerator(f2), Cre)/Evaluate(Denominator(f2), Cre);
   //Does the Involution lift to W?
-  IsPower(f2/f2pri, 4); //False !!!!
-  g2 := f2/f2pri;
-  g20 := Evaluate(Numerator(g2), [FE.2, FE.1, 0])/Evaluate(Denominator(g2), [FE.2, FE.1, 0]);
+  print "Does the involution act by u -> F u?";
+  print IsPower(f2/f2pri, 4); //False
+  print "\n Does the involution act by u -> F u^-1?";
+  print IsPower(f2*f2pri, 4);	//True
