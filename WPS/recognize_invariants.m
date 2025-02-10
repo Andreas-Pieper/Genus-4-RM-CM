@@ -13,6 +13,7 @@ function recognize_invariants(invs, wts, K : prec := 100)
   dK := Degree(K);
   basis := Basis(OK);
   v := InfinitePlaces(K)[1];
+  CC := ComplexField(prec);
   basis_CC := [CC!Evaluate(el, v : Precision := prec) : el in basis];
   Cl, m := ClassGroup(K);
   eles :=  ElementaryDivisors(Cl);
@@ -21,6 +22,7 @@ function recognize_invariants(invs, wts, K : prec := 100)
   es := [];
   invs_K := [];
   Lat := ZeroMatrix(Integers(), 0, #eles);
+  GLat := ZeroMatrix(RR, 0,0);
   for i->inv in invs do
     printf "ps = %o, es = %o\n", ps, es;
     opt := Vector([es[k] * wts[i] : k in [1..#ps]]);
