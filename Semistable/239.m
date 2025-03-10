@@ -1,4 +1,4 @@
-QQ := Rationals();
+QQ := RationalsExtra();
 R<x> := PolynomialRing(Rationals());
 S<t, X,Y,Z,T> := PolynomialRing(QQ, 5);
   Q := X*Z - Y^2;
@@ -53,7 +53,7 @@ fev;
 
 
 //Now t=infty
-f1 := S!(t^5*Evaluate(f, [1/t, 0,Y, 0, T]);
+f1 := S!(t^5*Evaluate(f, [1/t, 0,Y, 0, T]));
 f2 := S!Evaluate(f1, [t^3, 0, Y, 0, T/t^5]);
 f3 := S!Evaluate(f2, [t, 0, Y/t, 0, T]);
 fev := Evaluate(f3, [0,0,Y,0,T]);
