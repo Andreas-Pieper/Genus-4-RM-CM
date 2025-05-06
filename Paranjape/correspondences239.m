@@ -34,7 +34,6 @@ F3 := v^3 - (u^4+u);
 C3 := Curve(Spec(R3),F3);
 
 // t = oo
-AttachSpec("~/github/CHIMP/CHIMP.spec");
 QQ := RationalsExtra();
 CC := QQ`CC;
 R<x> := PolynomialRing(QQ);
@@ -55,6 +54,11 @@ RS := RiemannSurface(f4 : Precision := Precision(CC));
 Pi := BigPeriodMatrix(RS);
 Pi := ChangeRing(Pi, CC);
 GeometricEndomorphismRepresentationCC(Pi);
+
+// genus 1 factor
+
+E1 := EllipticCurve([0,-1]);
+matsE, mapsE := GeometricHomomorphismRepresentation(PeriodMatrix(E1), Pi, QQ);
 
 // genus 1 factor
 P:= E![1,0];
