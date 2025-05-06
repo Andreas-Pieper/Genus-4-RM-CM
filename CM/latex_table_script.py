@@ -1,5 +1,6 @@
 from lmfdb import db
 
+# fld_lab is an LMFDB field label; t is either 7 or 9, corresponding to the (2,3,7) or (2,3,9) triangle group
 def table_row(fld_lab,t):
     rec = db.nf_fields.lookup(fld_lab)
     if rec['disc_abs'] % t == 0:
@@ -16,6 +17,8 @@ def make_table(t, file_out, file_in='/home/sschiavo/github/Genus-4-RM-CM/CM/curv
     with open(file_out,'a') as f_out:
         # table header
         f_out.write(r'LMFDB label & $\disc(K)$ & $\Gal(K/\Q)$\\'+'\n')
+        # look for entries corresponding to CM points on Mumford Shimura curve
+        R.<x> = PolynomialRing(QQ)
         with open(file_in,'r') as f_in:
             lines = f_in.readlines()
             lines = list(set(lines))
@@ -25,10 +28,21 @@ def make_table(t, file_out, file_in='/home/sschiavo/github/Genus-4-RM-CM/CM/curv
                 fld_lab = spl[0]
                 print("Processing %s" % fld_lab)
                 crv_type = spl[1]
-                if t == 7:
-                    if crv_type == 'hyp':
-                        f_out.write(table_row(fld_lab,t)+"\n")
-                if t == 9:
-                    if crv_type == 'true':
-                        f_out.write(table_row(fld_lab,t)+"\n")
+                # Add check for QQ(zeta_7)^+ or QQ(zeta_9)^+ being contained in reflex field here
+                rec = db.nf_fields.lookup(fld_lab)
+                # reflex field should have degree 6
+                rfs = [el for el in db.nf_fields_reflex.search({'nf_label':lab}) if len(el['rf_coeffs'])==7]
+                if (t == 7) and (crv_type == 'hyp'):
+                    g = x^3 - x^2 - 2*x + 1 # defining poly of QQ(zeta_7)^+
+                elif (t == 9) and (crv_type == 'true'):
+                    g = x^3 - 3*x - 1 # defining poly of QQ(zeta_9)^+
+                else:
+                    continue
+                zeta_bool = False
+                for rf in rfs:
+                    F.<a> = NumberField(R(rf['rf_coeffs']))
+                    if len(g.roots(F)) != 0:
+                        zeta_bool = True
+                if zeta_bool:
+                    f_out.write(table_row(fld_lab,t)+"\n")
     return "Table written to %s" % file_out
