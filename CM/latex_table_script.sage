@@ -36,10 +36,16 @@ def table_row(trip,t):
     R.<x> = PolynomialRing(QQ)
     f = sage_eval(inv_poly, locals = locals())
     fabs = R(str(gp.polredabs(gp.polredbest(f))))
+    cs = [ZZ(el) for el in fabs.list()]
+    inv_lab = db.nf_fields.lucky({'coeffs':cs}, projection='label')
     # maybe replace poly with its LMFDB field label
     # currently there are two deg 15 polys whose numflds aren't in LMFDB
     link = "https://www.lmfdb.org/NumberField/%s" % fld_lab
-    s = r"\href{%s}{%s} & $%s$ & $%s$\\" % (link, fld_lab, latex(d), latex(fabs))
+    if inv_lab:
+        link_inv = "https://www.lmfdb.org/NumberField/%s" % inv_lab
+        s = r"\href{%s}{%s} & $%s$ & \href{%s}{%s}\\" % (link, fld_lab, latex(d), link_inv, inv_lab)
+    else:
+        s = r"\href{%s}{%s} & $%s$ & $%s$\\" % (link, fld_lab, latex(d), latex(fabs))
     return s
 
 def make_table(t, D, file_out):
