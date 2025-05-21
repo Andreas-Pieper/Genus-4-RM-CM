@@ -58,12 +58,31 @@ def make_table(t, D, file_out):
             f_out.write(table_row(trip,t)+"\n")
     return "Table written to %s" % file_out
 
+def missing_fields(t, file_out):
+    flds = read_params(t)
+    flds = sort_fields(t,flds)
+    with open(file_out,'a') as f_out:
+        for trip in flds:
+            fld_lab, d, inv_poly = trip 
+            print("Checking %s" % fld_lab)
+            # polredabs polynomial
+            R.<x> = PolynomialRing(QQ)
+            f = sage_eval(inv_poly, locals = locals())
+            fabs = R(str(gp.polredabs(gp.polredbest(f))))
+            cs = [ZZ(el) for el in fabs.list()]
+            inv_lab = db.nf_fields.lucky({'coeffs':cs}, projection='label')
+            if not inv_lab:
+                print("%s missing" % fabs)
+                f_out.write(str(fabs)+"\n")
+    return "Missing polys written to %s" % file_out
+
+
 # now do it
-D7 = read_params(7)
-D7 = sort_fields(7,D7)
-D9 = read_params(9)
-D9 = sort_fields(9,D9)
-print("Making table for 2,3,7")
-make_table(7,D7,"table7.txt")
-print("Making table for 2,3,9")
-make_table(9,D9,"table9.txt")
+#D7 = read_params(7)
+#D7 = sort_fields(7,D7)
+#D9 = read_params(9)
+#D9 = sort_fields(9,D9)
+#print("Making table for 2,3,7")
+#make_table(7,D7,"table7.txt")
+#print("Making table for 2,3,9")
+#make_table(9,D9,"table9.txt")
