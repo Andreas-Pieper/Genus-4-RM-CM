@@ -78,11 +78,13 @@ def missing_fields(t, file_out):
 
 
 # now do it
-#D7 = read_params(7)
-#D7 = sort_fields(7,D7)
-#D9 = read_params(9)
-#D9 = sort_fields(9,D9)
-#print("Making table for 2,3,7")
-#make_table(7,D7,"table7.txt")
-#print("Making table for 2,3,9")
-#make_table(9,D9,"table9.txt")
+D7 = read_params(7)
+D7 = sort_fields(7,D7)
+D9 = read_params(9)
+D9 = sort_fields(9,D9)
+print("Making table for 2,3,7")
+make_table(7,D7,"table7.txt")
+print("Making table for 2,3,9")
+make_table(9,D9,"table9.txt")
+#missing_fields(7,"missing7.txt")
+#missing_fields(9,"missing9.txt")
