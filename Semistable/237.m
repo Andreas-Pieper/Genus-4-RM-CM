@@ -1,75 +1,99 @@
-// needs to be changed to take into account the new model + where is the third singular fiber?
-/*
-//f := (-1159379986401484900376336474559079521714583311030847791806197101181524864236898080510906768580128141211041389769090640517263711056953344000000*mu - 75438776526320018828256925591492159315034928909725062999060558409569214959440604304029408486202335595434030906961345447788683684968038400000000)*X^10 - 11728627512795284077449666973547012627221455763584630338292486327518004860532807271304838201297469509916029860712865606756377600000000*X^9*Y + (7973921614777857866839040346042390508463955919466866956896222027641718642415391797530890402543049057923247889186816000000*mu - 754689133585433774575235152075166445321959440525172394255665518332151037053551520615995668427744460421783943893145600000000)*X^8*Y^2 + (-1807072079242449539346249049495131490500340396849157335744655687769154089996231426333796516303038075371520000*mu^2 + 438263683444204233607503673520002642113501973400049778187598048192717524328910299837743497019876957356032000000*mu - 25292267774697127404355599519353848182695832783359194755739377617233951681621056278839125447465045850080000000000)*X^7*Y^3 + (-49054648589392808371908026403154073897980624743471890821831693344631285356545166429630140252160000*mu^2 + 9285521486355401652898197755641898539953730161184187620709208045842251998917092670868340211712000000*mu - 439412531497634452863760828577364669739548289898114044585892786576997481654781643992883379209600000000)*X^6*Y^4 + (-295918657696831730851466712771578438423871315848136254955732389931734068149186723840000*mu^2 + 56014243976289213715332361636402611849886608781445856123229086986159750967939391488000000*mu - 2650724655768169649608625807187187788889764296516781148377971829442267893022386725400000000)*X^5*Y^5 + (-33530950634115663026055478351780470217660809256587458429610822396700262400*mu^3 + 9520576689188463266791135848825525394273683823402157477254490995839467520000*mu^2 - 901071783735797981238591408893901366215659324176401165994189794497400832000000*mu + 28427212130501794491127033891451796282947980157926252726372376156288645400000000)*X^4*Y^6 + (-520130727053349836000223385186490583663428474176548595197542400*mu^3 + 147682794005740869419860744472240394851899985689525167084011520000*mu^2 - 13977388446747809695558264966998518805895125465453341084831232000000*mu + 440961745310435727348219166590936196413309335237780146927353525000000)*X^3*Y^7 + (-207393433710151092980708761282277277696*mu^4 + 78514727562885570023757400337059047014400*mu^3 - 11146500037381147243704437471324689858560000*mu^2 + 703304502026638288994228446303552748064000000*mu - 16641004606113289325563621290856420251000390625)*X*Y^9;
-f := (-1432353454804332119596592722603696979968*mu0 - 4886589248453472)*X^10 - 309519*X^9*Y + 9851363924882199552*mu0*X^8*Y^2 + (-104516331448118333562141904207872*mu0^2 + 118855296*mu0)*X^7*Y^3 - 2837192810366073470976*mu0^2*X^6*Y^4 - 17115162624*mu0^2*X^5*Y^5 - 90790169931714351071232*mu0^3*X^4*Y^6 - 1408333381632*mu0^3*X^3*Y^7 - 26288889790464*mu0^4*X*Y^9;
-f := (-1432353454804332119596592722603696979968*mu0^3 - 4886589248453472*mu0)*X^10 - 309519*X^9*Y + 9851363924882199552*mu0*X^8*Y^2 + (-104516331448118333562141904207872*mu0^2 + 118855296)*X^7*Y^3 - 2837192810366073470976*mu0*X^6*Y^4 - 17115162624*X^5*Y^5 - 90790169931714351071232*mu0*X^4*Y^6 - 1408333381632*X^3*Y^7 - 26288889790464*X*Y^9;
+function EvaluateCoeff(f, x0 : mult := 1)
+  R := Parent(f);
+  Coeff := Coefficients(f);
+  d := #Coeff-1;
+  return &+[R!(mult*Evaluate(Coeff[i+1], x0))*(R.1)^i : i in [0..d]];
+end function;
 
-[Valuation(roots[i]-roots[j]) : i,j in [1..10]];
-[Valuation(roots[i]) : i in [1..10]];
-
-// first singular fiber
-Coeff, Mon := CoefficientsAndMonomials(f);
-param := -289/142950602142581316693668352;
-f := Polynomial([Evaluate(c, param) : c in Coeff], Mon);
-ell := X*(X + 17/704525554852*Y)*(X^2 - 17/1265270384224*X*Y + 289/6239907236382517792183936*Y^2);
-T<x,y> := PolynomialRing(QQ, 2);
-MinRedBinaryForm(Evaluate(ell, [x,y]));
-
-T<x> := PolynomialRing(QQ);
-final_ell := x^3 - 6*x^2 - 23*x - 36;
-jInvariant(EllipticCurve(final_ell));
-// CM by the maximal order of Sqrt(-7) 
-
-// second singular fiber
-// isogenous to y^2 = x^3+x times genus 3 curve which has CM by maximal order of Q(zeta_7^+, i)
-
-Coeff, Mon := CoefficientsAndMonomials(f);
-param := 0;
-f := Polynomial([Evaluate(c, param) : c in Coeff], Mon);
-Factorization(f);
-
-K<x> := PolynomialRing(FieldOfFractions(M));
-f := K!(Evaluate(f, [x, 1]));
-L := FunctionField(f div x);
+function DivisionCoeff(f, x0)
+  R := Parent(f);
+  Coeff := Coefficients(f);
+  d := #Coeff-1;
+  return &+[(Coeff[i+1] div x0)*(R.1)^i : i in [0..d]];
+end function;
 
 
-MinRedBinaryForm(PolynomialRing(QQ)!Evaluate(X^8 - 384*X^6*Y^2 + 55296*X^4*Y^4 + 31850496/7*X^2*Y^6 + 84934656*Y^8, [x, 1]));
-fac := Factorization(mu0*MaximalOrderFinite(L));
-RamificationDegree(fac[2][1]);
+f := GenericShimuraCurve237();
+S<x> := Parent(f);
+R<t> := BaseRing(S);
+S0<y> := PolynomialRing(QQ);
 
-/*
-RamificationDegree(fac[1][1]);
-1
-RamificationDegree(fac[2][1]);
-2
-InertiaDegree(fac[1][1]);                                                                                                                                      
-1
-InertiaDegree(fac[2][1]);
-4
+// fiber at 0
+g := EvaluateCoeff(f, t^2);
+g := Evaluate(g, t*x);
+g := DivisionCoeff(g, t^9);
+g := EvaluateCoeff(g, 0);
+g := Evaluate(g, y);
 
-F<nu> := NumberField(mu0^4 - 2*mu0^3 + 2*mu0^2 + 2);
-F<nu> := NumberField(mu0^12 + 4*mu0^11 + 12*mu0^10 + 28*mu0^9 + 47*mu0^8 + 50*mu0^7 + 38*mu0^6 + 18*mu0^5 - 10*mu0^4 - 20*mu0^3 + 14*mu0 + 7);
-L1<t> := PowerSeriesRing(QQ);
-S1<x,y> := PolynomialRing(L1,2);
-Coeff, Mon := CoefficientsAndMonomials(f);
-f := Polynomial([Evaluate(c, t) : c in Coeff], ChangeUniverse(Mon, S1));
-_<x> := PolynomialRing(L1);
+g_red := S0!((1*y+1)^10*Evaluate(g, (2*y+1)/(1*y+1))); // make it a degree 10 polynomial by choosing a random transformation
 
-f1 := Evaluate(f, [x, 1]);
-par := Universe(PuiseuxExpansion(f1, 2));
-_<x> := PolynomialRing(par);
+MinRedBinaryForm(g_red);
+// -25*x^10 - 126*x^9 - 252*x^8 - 168*x^7 + 252*x^6 + 504*x^5 + 168*x^4 - 288*x^3 - 252*x^2 - 56*x
+// gives a smooth curve
 
-f1 := ChangeRing(f1, par);
-f2 := Evaluate(f1, x*(par.1)^(1/2)) div (par.1)^(9/2);
-Coeff, Mon := CoefficientsAndMonomials(f2);
+// fiber at 1
+g := EvaluateCoeff(f, t+1);
+g := EvaluateCoeff(g, 0);
+g := MinRedBinaryForm(&*[l[1] : l in Factorization(Evaluate(g, y))]);
+// 2*y^4 + 3*y^3 - 3*y^2 + 4
 
-/*
-ell := X*(X + 17/704525554852*Y)*(X^2 - 17/1265270384224*X*Y + 289/6239907236382517792183936*Y^2);
-T<x,y> := PolynomialRing(QQ, 2);
-MinRedBinaryForm(Evaluate(ell, [x,y]));
+S_1<X,Y> := PolynomialRing(QQ, 2);
 
-T<x> := PolynomialRing(QQ);
-final_ell := x^3 - 6*x^2 - 23*x - 36;
-jInvariant(EllipticCurve(final_ell));
-// CM by the maximal order of Sqrt(-7) 
-*/
+g := S_1!(Y^4*Evaluate(g, X/Y));
+g := Evaluate(g, [X, Y-X]); // put a root at infinity
+g := Evaluate(g, [X+Y, Y]); // remove coeff in x^2
+g := Evaluate(g, [X, -1/7*Y]);
+// X^3*Y - 5/343*X*Y^3 + 2/2401*Y^4
+// j-invariant: -3375 -> potential CM by Sqrt(-7)
+
+
+
+/////
+g := EvaluateCoeff(f, t+1);
+Factorization(EvaluateCoeff(g, 0));
+
+g := Parent(g)!((-x+1)^10*Evaluate(g, 2*x/(-x+1)));
+
+Coeff := Coefficients(g);
+S_1<X,Y> := PolynomialRing(QQ, 2);
+Coeff1 := [Evaluate(c, Y) : c in Coeff];
+g := S_1!(&+[Coeff1[i]*X^(i-1) : i in [1..#Coeff]]);
+newt := NewtonPolygon(g);
+LowerSlopes(newt);
+
+// ListSignatures(Type(newt) : Isa := false);
+g := Evaluate(S_1!(Y^6*Evaluate(g, [X/Y^2, Y^7])), [X,0]);
+g := x^10*Evaluate(g, [1/x, 0]);
+// y^2 = -1152*x^7 + 3456
+
+Terms(S_1!(Y^6*Evaluate(g, [X/Y^2, Y^7])), X);
+
+
+g := Parent(g)!((-x+1)^10*Evaluate(g, 2*x/(-x+1)));
+
+[Factorization(c) : c in Coefficients(g) | c ne 0];
+
+g := EvaluateCoeff(g, t^7);
+g := Parent(g)!(t^12*Evaluate(g, x/t));
+
+
+EvaluateCoeff(g, 0);
+Factorization(EvaluateCoeff(g, 0));
+
+
+
+
+// fiber at infinity
+g := EvaluateCoeff(f, 1/t : mult := t^4);
+
+Coeff := Coefficients(g);
+S_1<X,Y> := PolynomialRing(QQ, 2);
+Coeff1 := [Evaluate(c, Y) : c in Coeff];
+g := S_1!(&+[Coeff1[i]*X^(i-1) : i in [1..#Coeff]]);
+newt := NewtonPolygon(g);
+LowerSlopes(newt);
+
+g := EvaluateCoeff(g, t^3);
+g := Parent(g)!(t*Evaluate(g, x/t));
+EvaluateCoeff(g, 0);
+// y^2 = x^10 - 84*x^7 + 84*x^4 - 28*x
