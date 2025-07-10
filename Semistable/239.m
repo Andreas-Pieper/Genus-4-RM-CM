@@ -15,7 +15,7 @@ f1 := Evaluate(f, [t^2, 0, t*Y, 0, T])/3;
 f2 := Evaluate(f1, [t, 0, Y, 0, t^2*T]) div t^6;
 f3 := Evaluate(f2, [t,0, Y, 0, T-1]);
 f4alt := Evaluate(f3, [t, 0, Y, 0, t*T]) div t^2;
-
+//f4alt is a generalized toggle model
 
 CMat := Matrix(Parent(t), [[0,0,0], [1,0,0], [0,1,0]]);
 for i in [1..3] do CMat[i,3] := -Coefficients(f3, T)[i]; end for;
