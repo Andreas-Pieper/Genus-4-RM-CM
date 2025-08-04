@@ -1,0 +1,33 @@
+AttachSpec("spec");
+AttachSpec("~/github/CHIMP/CHIMP.spec");
+AttachSpec("~/github/Genus-4/magma/spec");
+
+S<t,x> := PolynomialRing(QQ,2);
+ft := (t - 27/16)*x^10 - 567/64*x^9 - 189/4*t*x^8 + (-84*t^2 - 189/4*t)*x^7 - 189*t^2*x^6 - 189/2*t^2*x^5 + 84*t^3*x^4 + 108*t^3*x^3 - 28*t^4*x;
+f2 := Evaluate(ft, [t^2,t*x]);
+f2 div t^9;
+f0 := Evaluate($1, [0,x]);
+
+S0<tt> := PolynomialRing(QQ);
+Discriminant(ft, x);
+Factorization($1);
+t0 := -289/142950602142581316693668352;
+Evaluate(ft, [t0, x]);
+Factorization($1);
+f0 := Evaluate(ft, [t0, x]);
+Evaluate(ft, [t+t0, x-17/704525554852]);
+f_shift : = $1;
+f_shift := $1;
+Evaluate(f_shift, [t^7, t*x]);
+NewtonPolygon(ft);
+poly := $1;
+Slopes(poly);
+NewtonPolygon(f_shift);
+Slopes($1);
+Evaluate(f_shift, [t^7, t^2*x]);
+Evaluate(f_shift, [t^2, t^7*x]);
+Evaluate(f_shift, [t^7, t^2*x]);
+$1 div t^14;
+Evaluate($1, [0,x]);
+t0;
+Factorization(142950602142581316693668352);
