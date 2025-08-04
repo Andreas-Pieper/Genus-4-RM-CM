@@ -192,3 +192,31 @@ function GetShimuraCurve239(mu)
   Coeff, Mon := CoefficientsAndMonomials(E);
   return Evaluate(Q, [X,Y,Z,T]), &+[Evaluate(Coeff[i], mu)*Evaluate(Mon[i], [X,Y,Z,T]) : i in [1..#Coeff]];
 end function;
+
+
+function GetCurves237()
+  R<x> := PolynomialRing(QQ);
+  str := Read("~/github/Genus-4-RM-CM/examples/Shimura_237_param.m");
+  str := Split(str, "\n");
+  list_str := [Split(l, "|") : l in str];
+  list_curves := [**];
+  for l in list_str do
+    K<mu> := NumberField(eval l[2]);
+    Append(~list_curves, HyperellipticCurve(GetShimuraCurve237(eval l[3])));
+  end for;
+  return list_curves;
+end function;
+
+function GetCurves239()
+  R<x> := PolynomialRing(QQ);
+  str := Read("~/github/Genus-4-RM-CM/examples/Shimura_239_param.m");
+  str := Split(str, "\n");
+  list_str := [Split(l, "|") : l in str];
+  list_curves := [**];
+  for l in list_str do
+    K<mu> := NumberField(eval l[2]);
+    Q, E := GetShimuraCurve239(eval l[3]);
+    Append(~list_curves, Curve(Proj(Parent(Q)), [Q, E]));
+  end for;
+  return list_curves;
+end function;
