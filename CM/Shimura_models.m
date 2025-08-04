@@ -176,3 +176,19 @@ function GetParam239(Q, E)
   
   return Evaluate(PolynomialRing(L)!Flat(param1), L!base_chg);
 end function;
+
+function GetShimuraCurve237(mu)
+  L := Parent(mu);
+  f := GenericShimuraCurve237();
+  S<x> := PolynomialRing(FieldOfFractions(L));
+  Coeff := Coefficients(f);
+  return &+[Evaluate(Coeff[i], mu)*x^(i-1) : i in [1..#Coeff]];
+end function;
+
+function GetShimuraCurve239(mu)
+  L := Parent(mu);
+  Q, E := GenericShimuraCurve239();
+  S<X,Y,Z,T> := PolynomialRing(FieldOfFractions(L), 4);
+  Coeff, Mon := CoefficientsAndMonomials(E);
+  return Evaluate(Q, [X,Y,Z,T]), &+[Evaluate(Coeff[i], mu)*Evaluate(Mon[i], [X,Y,Z,T]) : i in [1..#Coeff]];
+end function;
