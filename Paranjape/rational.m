@@ -95,8 +95,66 @@ sqfnum := SquareFreeFactorisation(resnum);
 sqfden := SquareFreeFactorisation(resden);
 Ram := &*[fa[1]^(fa[2] mod 2): fa in sqfnum cat sqfden];
 RFKK := PolynomialRing(FKK);
-RamRFKK := Evaluate(Ram, [FKK.1, RFKK.1]);
+RamRFKK := Evaluate(Ram, [FKK.1+1, RFKK.1]);
 C := GenusOneModel(RamRFKK);
 E:= Jacobian(C);
 MinE:= MinimalDegreeModel(E);
+
+
+E := MinimalModel(WeierstrassModel(E));
+L := SplittingField(Numerator(Discriminant(E)));
+FL := RationalFunctionField(L);
+EFL := ChangeRing(E, FL);
+alpha := [Numerator(r[1]): r in Roots(DivisionPolynomial(EFL, 2))];
+rr1 := Roots(Numerator((alpha[2]-alpha[1])/Universe(alpha).1));
+rr3 := Roots(Numerator((alpha[2]-alpha[3])/Universe(alpha).1));
+pts1 := [[Evaluate(alpha[2], r[1]), r[1]] : r in rr1];
+RL<x,t> := PolynomialRing(L,2);
+f0 := (x-Evaluate(Derivative(alpha[3]), 0)*t)^3;
+f1 := (x-LeadingCoefficient(alpha[2])*t^3)^2*(x-LeadingCoefficient(alpha[1])*t^3);
+f1 -:= Evaluate(Derivative(alpha[3]), 0)*MonomialCoefficient(f1, x^2*t^3)*x*t^4;
+f01 := f0+f1-x^3;
+pts3 := [[Evaluate(alpha[2], r[1]), r[1]] : r in rr3];
+
+
+f1p := (x-LeadingCoefficient(Numerator(alpha[2]))*t^3)*t^5;
+f1p1 := (x-LeadingCoefficient(Numerator(alpha[2]))*t^3)^2*t^2;
+f0p := (x-Evaluate(Derivative(alpha[3]), 0)*t)^2*t^2;
+f01p := f0p+f1p1-x^2*t^2;
+f0pp := (x-Evaluate(Derivative(alpha[3]), 0)*t)*t^4;
+list := [f01, f01p, f1p, f0pp, t^7, t^6];
+Mat := Matrix([[Evaluate(l, pt): pt in pts1 cat pts3]: l in list]);
+Ker := Kernel(Mat);
+polys := [&+[list[i]*Eltseq(Ker.j)[i]: i in [1..6]]: j in [1..2]];
+ram := [x-Evaluate(a, t) : a in alpha ];
+
+eva := [Evaluate(pol, [x+ConstantCoefficient(Derivative(alpha[3]))*t+LeadingCoefficient(alpha[2])*t^3, t]): pol in polys];
+evaram := [Evaluate(pol, [x+ConstantCoefficient(Derivative(alpha[3]))*t+LeadingCoefficient(alpha[2])*t^3, t]): pol in ram ];
+eva1 := [Evaluate(pol, [x*t^2, t]) div t^6: pol in eva];
+eva1ram := [Evaluate(pol, [x*t^2, t]): i->pol in evaram];
+
+assert &and[Degree(pol, t) eq 1 : pol in eva1];
+RFL := PolynomialRing(FL);
+den := [Term(pol ,t,1) div t: pol in eva1];
+num := [Term(pol ,t,0): pol in eva1];
+param := -(Evaluate(num[1], [RFL.1,0])-FL.1*Evaluate(num[2], [RFL.1,0]))/(Evaluate(den[1], [RFL.1,0])-FL.1*Evaluate(den[2], [RFL.1,0]));
+rami := [Evaluate(pol, [RFL.1, param]): pol in eva1ram];
+rami1 := [Numerator(ra)*Denominator(ra): ra in rami];
+
+sqf := [SquareFreeFactorization(ra): ra in rami1];
+rami1sqf := [rami1[i] div &*[sq[1]^(sq[2] div 2): sq in s]^2: i->s in sqf];
+ramm12 := rami1sqf[1]*rami1sqf[2] div GCD(rami1sqf[1], rami1sqf[2])^2;
+ramm := ramm12*rami1sqf[3] div GCD(ramm12, rami1sqf[3])^2;
+
+ C := GenusOneModel(ramm);
+ E:= Jacobian(C);
+ fac := Factorization(Numerator(Discriminant(E)));
+ r0 := [Roots(f[1])[1,1]: f in fac| f[2] eq 1];
+ a := 4/(r0[2]-r0[1]);
+ b := 2-a*r0[2];
+ ainvs := aInvariants(E);
+ainvspr := [Evaluate(ainv, (FL.1-b)/a): ainv in ainvs];
+Epr:= EllipticCurve(ainvspr);
+E0 := EllipticCurve(RFL.1^3-3*RFL.1+Evaluate(DicksonFirst(7,1), FL.1));
+jInvariant(Epr) eq jInvariant(E0);
 
