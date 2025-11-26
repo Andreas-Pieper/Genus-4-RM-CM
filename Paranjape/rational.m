@@ -1,9 +1,9 @@
 //With a rational curve
  R<X> := PolynomialRing(Rationals());
  f1 := X^4 + 36/7*X^3 + 6*X^2 - 4*X + 1;
- K := SplittingField(f1);
- ro := [r[1]: r in Roots(f1, K)];
- Po<X0, X1>:= PolynomialRing(K, 2);
+ L := SplittingField(f1);
+ ro := [r[1]: r in Roots(f1, L)];
+ Po<X0, X1>:= PolynomialRing(L, 2);
  FS := FieldOfFractions(Po);
  S<x0, x2, a1, a2, a3, a4>:= PolynomialRing(Rationals(), 6);
  T := quo<S|a1*a2*a3*a4-1>;
@@ -29,14 +29,34 @@
   print IsPower(f2/f2pri, 4); //False
   print "\n Does the involution act by u -> F u^-1?";
   print IsPower(f2*f2pri, 4);	//True
-  
+ LLt<t> := RationalFunctionField(L);
+RLLt := PolynomialRing(LLt);
+_, f := IsSquare(-Evaluate(Numerator(f2), [t^2, RLLt.1]));
+C := GenusOneModel(t*f);
+E := Jacobian(C);
+cinvs := cInvariants(E);
+cinvs := [cinvs[1]/t^4, cinvs[2]/t^6];
+cinvsnew := cinvs;
+cinvsde := [LLt|0,0];
+for i in [4..0 by -1] do
+	cinvsde[1] +:= Coefficient(Numerator(cinvsnew[1]),4+i)*t^i;
+	cinvsnew[1] -:=  Coefficient(Numerator(cinvsnew[1]),4+i)*t^4*(t+1/t)^i;
+end for;
+for i in [6..0 by -1] do
+        cinvsde[2] +:= Coefficient(Numerator(cinvsnew[2]), 6+i)*t^i;
+        cinvsnew[2] -:=  Coefficient(Numerator(cinvsnew[2]), 6+i)*t^6*(t+1/t)^i;
+end for;
+Ede := EllipticCurve([-1/48*cinvsde[1]*(t-2)^2*(t+2)^2, -1/864*cinvsde[2]*(t-2)^3*(t+2)^3]);
+
+
+
 
 /* R3 := PolynomialRing(Rationals(),3);
  R7 := PolynomialRing(Rationals(),7);
  List := [X0+Cre[1], X1+Cre[2], X1*Cre2]];
  I6 := ideal<R7| [Evaluate(Denominator(List[i]), [R7.5, R7.6])*R7.i - Evaluate(Numerator(List[i]), [R7.5, R7.6]) :i in [1..3]] cat [(R7.4*R7.7 - R7.7^2)*Evaluate(Denominator(F2), [R7.5, R7.6]) - Evaluate(Numerator(F2), [R7.5, R7.6]), R7.7^4-Evaluate(Numerator(f2), [R7.5, R7.6])]>;
  */
-
+/*
 Crel := [Cre[1], Evaluate(Cre[2], [Po.1^2, Po.2]) ];
 f2l := Evaluate(Sqrt(-f2/Po.1), [Po.1^2, Po.2])*Po.1;
 R2 := PolynomialRing(Rationals(),2);
@@ -157,4 +177,4 @@ ainvspr := [Evaluate(ainv, (FL.1-b)/a): ainv in ainvs];
 Epr:= EllipticCurve(ainvspr);
 E0 := EllipticCurve(RFL.1^3-3*RFL.1+Evaluate(DicksonFirst(7,1), FL.1));
 jInvariant(Epr) eq jInvariant(E0);
-
+*/
