@@ -32,21 +32,22 @@
  LLt<t> := RationalFunctionField(L);
 RLLt := PolynomialRing(LLt);
 _, f := IsSquare(-Evaluate(Numerator(f2), [t^2, RLLt.1]));
-C := GenusOneModel(t*f);
-E := Jacobian(C);
-cinvs := cInvariants(E);
-cinvs := [cinvs[1]/t^4, cinvs[2]/t^6];
+C := GenusOneModel(f);
+E0 := Jacobian(C);
+cinvs := cInvariants(E0);
+print jInvariant(E0);
+cinvs := [cinvs[1]/t^2, cinvs[2]/t^3];
 cinvsnew := cinvs;
 cinvsde := [LLt|0,0];
-for i in [4..0 by -1] do
-	cinvsde[1] +:= Coefficient(Numerator(cinvsnew[1]),4+i)*t^i;
+for i in [Degree(cinvs[1])..0 by -1] do
+	cinvsde[1] +:= Coefficient(Numerator(cinvsnew[1]),4+i)*((-2*t+2)/(t+1))^i;
 	cinvsnew[1] -:=  Coefficient(Numerator(cinvsnew[1]),4+i)*t^4*(t+1/t)^i;
 end for;
-for i in [6..0 by -1] do
-        cinvsde[2] +:= Coefficient(Numerator(cinvsnew[2]), 6+i)*t^i;
+for i in [Degree(cinvs[2])..0 by -1] do
+        cinvsde[2] +:= Coefficient(Numerator(cinvsnew[2]), 6+i)*((-2*t+2)/(t+1))^i;
         cinvsnew[2] -:=  Coefficient(Numerator(cinvsnew[2]), 6+i)*t^6*(t+1/t)^i;
 end for;
-Ede := EllipticCurve([-1/48*cinvsde[1]*(t-2)^2*(t+2)^2, -1/864*cinvsde[2]*(t-2)^3*(t+2)^3]);
+Ede := EllipticCurve([-1/48*cinvsde[1]*t^2, -1/864*cinvsde[2]*t^3]);
 
 
 
@@ -56,7 +57,7 @@ Ede := EllipticCurve([-1/48*cinvsde[1]*(t-2)^2*(t+2)^2, -1/864*cinvsde[2]*(t-2)^
  List := [X0+Cre[1], X1+Cre[2], X1*Cre2]];
  I6 := ideal<R7| [Evaluate(Denominator(List[i]), [R7.5, R7.6])*R7.i - Evaluate(Numerator(List[i]), [R7.5, R7.6]) :i in [1..3]] cat [(R7.4*R7.7 - R7.7^2)*Evaluate(Denominator(F2), [R7.5, R7.6]) - Evaluate(Numerator(F2), [R7.5, R7.6]), R7.7^4-Evaluate(Numerator(f2), [R7.5, R7.6])]>;
  */
-/*
+
 Crel := [Cre[1], Evaluate(Cre[2], [Po.1^2, Po.2]) ];
 f2l := Evaluate(Sqrt(-f2/Po.1), [Po.1^2, Po.2])*Po.1;
 R2 := PolynomialRing(Rationals(),2);
@@ -122,6 +123,8 @@ MinE:= MinimalDegreeModel(E);
 
 
 E := MinimalModel(WeierstrassModel(E));
+LocalInformation(E);
+/*
 L := SplittingField(Numerator(Discriminant(E)));
 FL := RationalFunctionField(L);
 EFL := ChangeRing(E, FL);
