@@ -1,5 +1,6 @@
 d:= 4;
-function foo(G)
+// test
+function IsGaloisGroupOfCMField(G)
 	if IsPrimitive(G) then return false; end if;
 	X := MinimalPartition(G);
 	if #X ne d then return false; end if;
@@ -22,7 +23,8 @@ function ReflexType(G, Phi)
 	return sub<G|Hr>, Phir;
 end function;
 
-Gs := TransitiveGroups(2*d, foo);
+Gs := TransitiveGroups(2*d, IsGaloisGroupOfCMField);
+exps := [];
 for G in Gs do
 	A := GroupAlgebra(Rationals(), G);
 	X := MinimalPartition(G);
@@ -51,6 +53,27 @@ for G in Gs do
 		f := hom<M->Mr|Mat>;
 		IsModuleHomomorphism(Hom(M,Mr)!f);
         	print G, Phi;
+        // Want {phi: Mr -> M such that phi*f*iota = iota}
+        // where iota: Msig -> M
+        V := GHom(Mr,M);
+        B := Basis(V);
+        Bint := [];
+        for b in B do
+          bint := Denominator(b)*b;
+          Append(~Bint, bint);
+        end for;
+        Msig := sub< M | [b*sig - b : b in Basis(M)] >;
+        Mrsig := sub< Mr | [b*sig - b : b in Basis(Mr)] >;
+        // create inclusion map Mrsig -> Mr
+        iota := Matrix([Coordinates(M,b) : b in Basis(Msig)]);
+        rows := [Eltseq(iota*Mat*b) : b in Bint];
+        Append(~rows, Eltseq(iota));
+        Rel := Matrix(rows);
+        // make matrix integral
+        Rel *:= Denominator(Rel);
+        Rel := ChangeRing(Rel,Integers());
+        k := KernelMatrix(Rel);
+        exp := GCD(Eltseq(Rows(Transpose(k))[Ncols(k)]));
+        Append(~exps, <G, Phi, exp>);
 	end for;
 end for;
-
