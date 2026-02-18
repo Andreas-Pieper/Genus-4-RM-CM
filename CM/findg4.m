@@ -523,267 +523,263 @@ end function;
 function SingleClassFromPolynomial(f : exp := 4, prec := 300, precred := 200)
 /* We follow Streng's argument in Proposition 4.4 of "Computing Igusa class polynomials" and optimize along the way  */
 
-/* Create CM field and totally real subfield */
-F := RationalsExtra(prec); R := PolynomialRing(F);
-K := NumberFieldExtra(R ! f); CC := K`CC;
-test, tup, invK := IsCMField(K);
-K0, hK0K := Explode(tup);
+  /* Create CM field and totally real subfield */
+  F := RationalsExtra(prec); R := PolynomialRing(F);
+  K := NumberFieldExtra(R ! f); CC := K`CC;
+  test, tup, invK := IsCMField(K);
+  K0, hK0K := Explode(tup);
 
-vprint CMExp, 2 : "Determining field information...";
-/* Create rings of integers */
-ZZK := Integers(K); ZZK0 := Integers(K0);
-/* Create class groups */
-ClK, phiClK := ClassGroup(ZZK); ClK0, phiClK0 := ClassGroup(ZZK0);
-vprint CMExp, 2 : "Structure of Cl (K):", ClK;
-vprint CMExp, 2 : "Structure of Cl (K0):", ClK0;
-/* Create unit groups */
-UK, phiUK := UnitGroup(ZZK : GRH := true); UK0, phiUK0 := UnitGroup(ZZK0 : GRH := true);
-/* Create differents */
-DiffK := Different(ZZK); DiffK0 := Different(ZZK0);
-/* Create infinite places */
-infsK := InfinitePlaces(K); infsK0 := InfinitePlaces(K0);
-/* Store */
-Kinfo := [* K, ZZK, DiffK, infsK, [* ClK, phiClK *], [* UK, phiUK *], invK *];
-K0info := [* K0, ZZK0, DiffK0, infsK0, [* ClK0, phiClK0 *], [* UK0, phiUK0 *], hK0K *];
-vprint CMExp, 2 : "done.";
+  vprint CMExp, 2 : "Determining field information...";
+  /* Create rings of integers */
+  ZZK := Integers(K); ZZK0 := Integers(K0);
+  /* Create class groups */
+  ClK, phiClK := ClassGroup(ZZK); ClK0, phiClK0 := ClassGroup(ZZK0);
+  vprint CMExp, 2 : "Structure of Cl (K):", ClK;
+  vprint CMExp, 2 : "Structure of Cl (K0):", ClK0;
+  /* Create unit groups */
+  UK, phiUK := UnitGroup(ZZK : GRH := true); UK0, phiUK0 := UnitGroup(ZZK0 : GRH := true);
+  /* Create differents */
+  DiffK := Different(ZZK); DiffK0 := Different(ZZK0);
+  /* Create infinite places */
+  infsK := InfinitePlaces(K); infsK0 := InfinitePlaces(K0);
+  /* Store */
+  Kinfo := [* K, ZZK, DiffK, infsK, [* ClK, phiClK *], [* UK, phiUK *], invK *];
+  K0info := [* K0, ZZK0, DiffK0, infsK0, [* ClK0, phiClK0 *], [* UK0, phiUK0 *], hK0K *];
+  vprint CMExp, 2 : "done.";
 
-/* Calculate small representatives */
-vprint CMExp, 2 : "Determining small representatives...";
-nClK := NumberOfGenerators(ClK);
-gensClK := [ MakeSmallClassRepresentative(phiClK(ClK.i), infsK : precred := precred) : i in [1..nClK] ];
-aas, bbs := SmallRepresentativesIdeals(Kinfo, K0info : exp := exp, precred := precred);
-vprint CMExp, 2 : "Ideals:", #bbs;
-u0s, v0s := SmallRepresentativesUnits(Kinfo, K0info : precred := precred);
-assert &and[ Abs(Norm(u0)) eq 1 : u0 in u0s ];
-assert &and[ Norm(v0) eq 1 : v0 in v0s ];
-vprint CMExp, 2 : "Units:", #v0s;
-vprint CMExp, 2 : "done.";
+  /* Calculate small representatives */
+  vprint CMExp, 2 : "Determining small representatives...";
+  nClK := NumberOfGenerators(ClK);
+  gensClK := [ MakeSmallClassRepresentative(phiClK(ClK.i), infsK : precred := precred) : i in [1..nClK] ];
+  aas, bbs := SmallRepresentativesIdeals(Kinfo, K0info : exp := exp, precred := precred);
+  vprint CMExp, 2 : "Ideals:", #bbs;
+  u0s, v0s := SmallRepresentativesUnits(Kinfo, K0info : precred := precred);
+  assert &and[ Abs(Norm(u0)) eq 1 : u0 in u0s ];
+  assert &and[ Norm(v0) eq 1 : v0 in v0s ];
+  vprint CMExp, 2 : "Units:", #v0s;
+  vprint CMExp, 2 : "done.";
 
-/* Creation of z */
-z := K.1 - invK(K.1);
-assert z ne 0;
-/* Creation of ideal hh in K0 */
-B := Basis(ZZK);
-hh0 := ideal< ZZK0 | [ (K !(z*(b - invK(b)))) @@ hK0K : b in B ] >;
+  /* Creation of z */
+  z := K.1 - invK(K.1);
+  assert z ne 0;
+  /* Creation of ideal hh in K0 */
+  B := Basis(ZZK);
+  hh0 := ideal< ZZK0 | [ (K !(z*(b - invK(b)))) @@ hK0K : b in B ] >;
 
-/* Special case of trivial class group */
-if #ClK eq 1 then
-    assert #ClK0 eq 1;
-    aa00 := ideal< ZZK | [ ZZK ! 1 ] >;
-    test, y := IsPrincipalSmall(hh0^(-1)*DiffK0^(-1), K0info : precred := precred);
-    assert test;
-    xi000 := hK0K(y)*z;
+  /* Special case of trivial class group */
+  if #ClK eq 1 then
+      assert #ClK0 eq 1;
+      aa00 := ideal< ZZK | [ ZZK ! 1 ] >;
+      test, y := IsPrincipalSmall(hh0^(-1)*DiffK0^(-1), K0info : precred := precred);
+      assert test;
+      xi000 := hK0K(y)*z;
 
-    /* Determine suitable CM type */
-    Phis := AllCMTypes(K : Primitive := true);
-    for aa in aas do
-        aabar := ideal< ZZK | [ invK(genaa) : genaa in Generators(aa) ] >;
-        aaaabar := DescendIdeal(aa*aabar, ZZK0, hK0K);
-        test, gen := IsPrincipalSmall(aaaabar, K0info : precred := precred);
-        aa0 := aa00*aa;
-        aa0bar := ideal< ZZK | [ invK(genaa0) : genaa0 in Generators(aa0) ] >;
-        xi00 := xi000*hK0K(gen^(-1));
+      /* Determine suitable CM type */
+      Phis := AllCMTypes(K : Primitive := true);
+      for aa in aas do
+          aabar := ideal< ZZK | [ invK(genaa) : genaa in Generators(aa) ] >;
+          aaaabar := DescendIdeal(aa*aabar, ZZK0, hK0K);
+          test, gen := IsPrincipalSmall(aaaabar, K0info : precred := precred);
+          aa0 := aa00*aa;
+          aa0bar := ideal< ZZK | [ invK(genaa0) : genaa0 in Generators(aa0) ] >;
+          xi00 := xi000*hK0K(gen^(-1));
 
-        for u0 in u0s do
-            xi0 := xi00*hK0K(u0);
-            for Phi0 in Phis do
-                if &and[ Im(EmbedExtra(xi0 : iota := iota)) gt CC`epscomp : iota in Phi0 ] then
-                    /* Check and return */
-                    assert IsTotallyPositive((-xi0^2) @@ hK0K);
-                    assert ideal< ZZK | xi0 > eq (aa0*aa0bar*DiffK)^(-1);
-                    return true, [* Phi0, aa0, xi0 *], Kinfo, K0info, bbs, v0s;
-                end if;
-            end for;
-        end for;
-    end for;
-    return false, 0, 0, 0, 0, 0;
-end if;
+          for u0 in u0s do
+              xi0 := xi00*hK0K(u0);
+              for Phi0 in Phis do
+                  if &and[ Im(EmbedExtra(xi0 : iota := iota)) gt CC`epscomp : iota in Phi0 ] then
+                      /* Check and return */
+                      assert IsTotallyPositive((-xi0^2) @@ hK0K);
+                      assert ideal< ZZK | xi0 > eq (aa0*aa0bar*DiffK)^(-1);
+                      return true, [* Phi0, aa0, xi0 *], Kinfo, K0info, bbs, v0s;
+                  end if;
+              end for;
+          end for;
+      end for;
+      return false, 0, 0, 0, 0, 0;
+  end if;
 
-/* Create norm map if the class group is non-trivial */
-vprint CMExp, 2 : "Creating norm map...";
-gensNmKK0 := [ ];
-for i in [1..nClK] do
-    aa := gensClK[i];
-    aabar := ideal< ZZK | [ invK(genaa) : genaa in Generators(aa) ] >;
-    aaaabar0 := DescendIdeal(aa*aabar, ZZK0, hK0K);
-    Append(~gensNmKK0, aaaabar0 @@ phiClK0);
-end for;
-NmKK0 := hom< ClK -> ClK0 | gensNmKK0 >;
-assert Image(NmKK0) eq ClK0;
-vprint CMExp, 2 : "done.";
+  /* Create norm map if the class group is non-trivial */
+  vprint CMExp, 2 : "Creating norm map...";
+  gensNmKK0 := [ ];
+  for i in [1..nClK] do
+      aa := gensClK[i];
+      aabar := ideal< ZZK | [ invK(genaa) : genaa in Generators(aa) ] >;
+      aaaabar0 := DescendIdeal(aa*aabar, ZZK0, hK0K);
+      Append(~gensNmKK0, aaaabar0 @@ phiClK0);
+  end for;
+  NmKK0 := hom< ClK -> ClK0 | gensNmKK0 >;
+  assert Image(NmKK0) eq ClK0;
+  vprint CMExp, 2 : "done.";
 
-/* Take a small preimage of hh0 */
-vprint CMExp, 2 : "Determining small class representative...";
-Q := quo< ClK | Kernel(NmKK0) >;
-expQ := Exponent(Q);
-/* Note that indeed an inverse is taken, in the form of a minus sign */
-seq00 := [ -c mod expQ : c in Eltseq(((hh0*DiffK0) @@ phiClK0) @@ NmKK0) ];
+  /* Take a small preimage of hh0 */
+  vprint CMExp, 2 : "Determining small class representative...";
+  Q := quo< ClK | Kernel(NmKK0) >;
+  expQ := Exponent(Q);
+  /* Note that indeed an inverse is taken, in the form of a minus sign */
+  seq00 := [ -c mod expQ : c in Eltseq(((hh0*DiffK0) @@ phiClK0) @@ NmKK0) ];
 
-/* Make representative small using geometry of numbers */
-aa00 := MakeSmallSequence(seq00, gensClK, infsK : precred := precred);
-aa00bar := ideal< ZZK | [ invK(genaa00) : genaa00 in Generators(aa00) ] >;
-aa00aa00bar0 := DescendIdeal(aa00*aa00bar, ZZK0, hK0K);
-vprint CMExp, 2 : "done.";
+  /* Make representative small using geometry of numbers */
+  aa00 := MakeSmallSequence(seq00, gensClK, infsK : precred := precred);
+  aa00bar := ideal< ZZK | [ invK(genaa00) : genaa00 in Generators(aa00) ] >;
+  aa00aa00bar0 := DescendIdeal(aa00*aa00bar, ZZK0, hK0K);
+  vprint CMExp, 2 : "done.";
 
-/* Determine x0 (minimize?) */
-vprint CMExp, 2 : "Determining small generator...";
-test, y := IsPrincipalSmall(hh0^(-1)*DiffK0^(-1)*aa00aa00bar0^(-1), K0info : precred := precred);
-assert test;
-xi000 := hK0K(y)*z;
-vprint CMExp, 2 : "done.";
+  /* Determine x0 (minimize?) */
+  vprint CMExp, 2 : "Determining small generator...";
+  test, y := IsPrincipalSmall(hh0^(-1)*DiffK0^(-1)*aa00aa00bar0^(-1), K0info : precred := precred);
+  assert test;
+  xi000 := hK0K(y)*z;
+  vprint CMExp, 2 : "done.";
 
-/* Determine suitable CM type */
-Phis := AllCMTypes(K : Primitive := true);
-for aa in aas do
-    aabar := ideal< ZZK | [ invK(genaa) : genaa in Generators(aa) ] >;
-    aaaabar := DescendIdeal(aa*aabar, ZZK0, hK0K);
-    test, gen := IsPrincipalSmall(aaaabar, K0info : precred := precred);
-    aa0 := aa00*aa;
-    aa0bar := ideal< ZZK | [ invK(genaa0) : genaa0 in Generators(aa0) ] >;
-    xi00 := xi000*hK0K(gen^(-1));
+  /* Determine suitable CM type */
+  Phis := AllCMTypes(K : Primitive := true);
+  for aa in aas do
+      aabar := ideal< ZZK | [ invK(genaa) : genaa in Generators(aa) ] >;
+      aaaabar := DescendIdeal(aa*aabar, ZZK0, hK0K);
+      test, gen := IsPrincipalSmall(aaaabar, K0info : precred := precred);
+      aa0 := aa00*aa;
+      aa0bar := ideal< ZZK | [ invK(genaa0) : genaa0 in Generators(aa0) ] >;
+      xi00 := xi000*hK0K(gen^(-1));
 
-    for u0 in u0s do
-        xi0 := xi00*hK0K(u0);
-        for Phi0 in Phis do
-            if &and[ Im(EmbedExtra(xi0 : iota := iota)) gt CC`epscomp : iota in Phi0 ] then
-                /* Check and return */
-                assert IsTotallyPositive((-xi0^2) @@ hK0K);
-                assert ideal< ZZK | xi0 > eq (aa0*aa0bar*DiffK)^(-1);
-                return true, [* Phi0, aa0, xi0 *], Kinfo, K0info, bbs, v0s;
-            end if;
-        end for;
-    end for;
-end for;
-return false, 0, 0, 0, 0, 0;
+      for u0 in u0s do
+          xi0 := xi00*hK0K(u0);
+          for Phi0 in Phis do
+              if &and[ Im(EmbedExtra(xi0 : iota := iota)) gt CC`epscomp : iota in Phi0 ] then
+                  /* Check and return */
+                  assert IsTotallyPositive((-xi0^2) @@ hK0K);
+                  assert ideal< ZZK | xi0 > eq (aa0*aa0bar*DiffK)^(-1);
+                  return true, [* Phi0, aa0, xi0 *], Kinfo, K0info, bbs, v0s;
+              end if;
+          end for;
+      end for;
+  end for;
+  return false, 0, 0, 0, 0, 0;
 
 end function;
 
+intrinsic PeriodMatrixFromCMType(K::FldNum, Phi::Any, aa::RngOrdIdl, xi::FldNumElt, invK::Any) -> Any
+
+  /* Recover period matrix */
+  B := Basis(aa); B := [ K ! b : b in B ];
+  P := Matrix(CC, [ [ EmbedExtra(b : iota := iota) : b in B ] : iota in Phi ]);
+
+  /* Recover principal polarization */
+  E := Matrix([ [ Trace(xi*invK(x)*y) : x in B ] : y in B ]);
+  E := ChangeRing(E, Rationals());
+  E := -E;
+
+  /* Convert to big period matrix */
+  E := ChangeRing(E, Integers());
+  E0, T := FrobeniusFormAlternating(E);
+  P := P*ChangeRing(Transpose(T), CC);
+
+  /* Convert to small period matrix and reduce */
+  tau := SmallPeriodMatrix(P);
+  vprint CMExp, 1 : "Reducing period matrix...";
+  tau_red := SiegelReduction(tau);
+  tau_red := (tau_red + Transpose(tau_red))/2; // hack
+
+  return tau_red;
+end intrinsic;
 
 intrinsic EnumerationUpToGalois(f::RngUPolElt : exp := 4, prec := 50, precred := 50, prectheta := 50) -> .
 {Finds all abelian varieties with primitive CM by the maximal order of the number field defined by f up to Galois conjugation.}
 
-// FIXME: determine bound on exponenent of quotient of group
-/* Recover information from calculation for a single case */
-vprint CMExp, 1 : "Calculating single solution and field information...";
-test0, AV0, Kinfo, K0info, bbs, v0s := SingleClassFromPolynomial(f : exp := exp, prec := prec, precred := precred);
-vprint CMExp, 1 : "done calculating single solution and field information.";
-if not test0 then
-    vprint CMExp, 1 : "Only imprimitive CM types!";
-    return [], [];
-end if;
-Phi, aa0, xi00 := Explode(AV0);
-K, ZZK, DiffK, infsK, ClKinfo, UKinfo, invK := Explode(Kinfo); ClK, phiClK := Explode(ClKinfo); UK, phiUK := Explode(UKinfo);
-K0, ZZK0, DiffK0, infsK0, ClK0info, UK0info, hK0K := Explode(K0info); ClK0, phiClK0 := Explode(ClK0info); UK0, phiUK0 := Explode(UK0info);
-CC := K`CC; CCtheta := ComplexFieldExtra(prectheta);
+  // FIXME: determine bound on exponenent of quotient of group
+  /* Recover information from calculation for a single case */
+  vprint CMExp, 1 : "Calculating single solution and field information...";
+  test0, AV0, Kinfo, K0info, bbs, v0s := SingleClassFromPolynomial(f : exp := exp, prec := prec, precred := precred);
+  vprint CMExp, 1 : "done calculating single solution and field information.";
+  if not test0 then
+      vprint CMExp, 1 : "Only imprimitive CM types!";
+      return [], [];
+  end if;
+  Phi, aa0, xi00 := Explode(AV0);
+  K, ZZK, DiffK, infsK, ClKinfo, UKinfo, invK := Explode(Kinfo); ClK, phiClK := Explode(ClKinfo); UK, phiUK := Explode(UKinfo);
+  K0, ZZK0, DiffK0, infsK0, ClK0info, UK0info, hK0K := Explode(K0info); ClK0, phiClK0 := Explode(ClK0info); UK0, phiUK0 := Explode(UK0info);
+  CC := K`CC; CCtheta := ComplexFieldExtra(prectheta);
 
-/* Create totally positive units */
-vprint CMExp, 1 : "Determining totally positive units...";
-C2 := CyclicGroup(2); C2prod, incs := DirectProduct([ C2 : i in [1..#infsK0] ]);
-gensh1 := [ ]; Msign := [ ];
-for i in [1..NumberOfGenerators(UK0)] do
-    u0 := phiUK0(UK0.i);
-    seq := [ ]; Mrow := [ ];
-    for inf0 in infsK0 do
-        sg := Sign(Evaluate(u0, inf0 : Precision := precred));
-        if sg eq 1 then Append(~seq, C2.1^0); else Append(~seq, C2.1^1); end if;
-        if sg eq 1 then Append(~Mrow, 0); else Append(~Mrow, 1); end if;
-    end for;
-    genh1 := &*[ incs[i](seq[i]) : i in [1..#infsK0] ];
-    Append(~gensh1, genh1); Append(~Msign, Mrow);
-end for;
-h1 := hom< UK0 -> C2prod | gensh1 >;
-UK1 := Kernel(h1);
-B1 := [ UK0 ! UK1.i : i in [1..NumberOfGenerators(UK1)] ];
-Msign := Matrix(FiniteField(2), Msign);
-vprint CMExp, 1 : "done.";
+  /* Create totally positive units */
+  vprint CMExp, 1 : "Determining totally positive units...";
+  C2 := CyclicGroup(2); C2prod, incs := DirectProduct([ C2 : i in [1..#infsK0] ]);
+  gensh1 := [ ]; Msign := [ ];
+  for i in [1..NumberOfGenerators(UK0)] do
+      u0 := phiUK0(UK0.i);
+      seq := [ ]; Mrow := [ ];
+      for inf0 in infsK0 do
+          sg := Sign(Evaluate(u0, inf0 : Precision := precred));
+          if sg eq 1 then Append(~seq, C2.1^0); else Append(~seq, C2.1^1); end if;
+          if sg eq 1 then Append(~Mrow, 0); else Append(~Mrow, 1); end if;
+      end for;
+      genh1 := &*[ incs[i](seq[i]) : i in [1..#infsK0] ];
+      Append(~gensh1, genh1); Append(~Msign, Mrow);
+  end for;
+  h1 := hom< UK0 -> C2prod | gensh1 >;
+  UK1 := Kernel(h1);
+  B1 := [ UK0 ! UK1.i : i in [1..NumberOfGenerators(UK1)] ];
+  Msign := Matrix(FiniteField(2), Msign);
+  vprint CMExp, 1 : "done.";
 
-/* Sanity check */
-for u0 in B1 do
-    assert &and[ Sign(Evaluate(phiUK0(u0), inf0 : Precision := precred)) eq 1 : inf0 in infsK0 ];
-end for;
+  /* Sanity check */
+  for u0 in B1 do
+      assert &and[ Sign(Evaluate(phiUK0(u0), inf0 : Precision := precred)) eq 1 : inf0 in infsK0 ];
+  end for;
 
-vprint CMExp, 1 : "Determining abelian varieties...";
-AVs := [ ];
-for bb in bbs do
-    bbbar := ideal< ZZK | [ invK(genbb) : genbb in Generators(bb) ] >;
+  vprint CMExp, 1 : "Determining abelian varieties...";
+  AVs := [ ];
+  for bb in bbs do
+      bbbar := ideal< ZZK | [ invK(genbb) : genbb in Generators(bb) ] >;
 
-    /* Descend aa*aabar and find small totally positive generator */
-    bbbbbar0 := DescendIdeal(bb*bbbar, ZZK0, hK0K);
-    test, eta := IsPrincipalSmall(bbbbbar0, K0info : precred := precred);
-    assert test; assert ideal< ZZK0 | eta > eq bbbbbar0;
-    v := [ ];
-    for inf0 in infsK0 do
-        sg := Sign(Evaluate(eta, inf0 : Precision := precred));
-        if sg eq 1 then Append(~v, 0); else Append(~v, 1); end if;
-    end for;
-    v := Vector(FiniteField(2), v);
-    u := Solution(Msign, v);
-    u0 := UK0 ! [ Integers() ! c : c in Eltseq(u) ];
-    u0 := phiUK0(u0);
-    u0 := MakeSmallUnit(u0, B1, K0info : precred := precred);
-    eta := u0*eta;
+      /* Descend aa*aabar and find small totally positive generator */
+      bbbbbar0 := DescendIdeal(bb*bbbar, ZZK0, hK0K);
+      test, eta := IsPrincipalSmall(bbbbbar0, K0info : precred := precred);
+      assert test; assert ideal< ZZK0 | eta > eq bbbbbar0;
+      v := [ ];
+      for inf0 in infsK0 do
+          sg := Sign(Evaluate(eta, inf0 : Precision := precred));
+          if sg eq 1 then Append(~v, 0); else Append(~v, 1); end if;
+      end for;
+      v := Vector(FiniteField(2), v);
+      u := Solution(Msign, v);
+      u0 := UK0 ! [ Integers() ! c : c in Eltseq(u) ];
+      u0 := phiUK0(u0);
+      u0 := MakeSmallUnit(u0, B1, K0info : precred := precred);
+      eta := u0*eta;
 
-    /* At this point eta is a totally positive generator of bb*bbbar */
-    /* This implies that the following lines are justified */
-    aa := aa0*bb;
-    xi0 := xi00*hK0K(eta^(-1));
+      /* At this point eta is a totally positive generator of bb*bbbar */
+      /* This implies that the following lines are justified */
+      aa := aa0*bb;
+      xi0 := xi00*hK0K(eta^(-1));
 
-    /* We can still make things a bit smaller */
-    aa, alpha := MakeSmallClassRepresentative(aa, infsK : precred := precred);
-    xi0 := xi0*(alpha*invK(alpha))^(-1);
-    xi0 := MakeSmallXi(xi0, B1, Kinfo, K0info : precred := precred);
+      /* We can still make things a bit smaller */
+      aa, alpha := MakeSmallClassRepresentative(aa, infsK : precred := precred);
+      xi0 := xi0*(alpha*invK(alpha))^(-1);
+      xi0 := MakeSmallXi(xi0, B1, Kinfo, K0info : precred := precred);
 
-    /* Check and create abelian variety */
-    aabar := ideal< ZZK | [ invK(genaa) : genaa in Generators(aa) ] >;
-    for v0 in v0s do
-        xi := xi0*hK0K(v0);
-        assert ideal< ZZK | xi > eq (aa*aabar*DiffK)^(-1);
-        assert IsTotallyPositive((-xi^2) @@ hK0K);
-        assert &and[ Im(EmbedExtra(xi : iota := iota)) gt CC`epscomp : iota in Phi ];
-        Append(~AVs, [* Phi, aa, xi *]);
-    end for;
-end for;
-vprint CMExp, 1 : "done.";
+      /* Check and create abelian variety */
+      aabar := ideal< ZZK | [ invK(genaa) : genaa in Generators(aa) ] >;
+      for v0 in v0s do
+          xi := xi0*hK0K(v0);
+          assert ideal< ZZK | xi > eq (aa*aabar*DiffK)^(-1);
+          assert IsTotallyPositive((-xi^2) @@ hK0K);
+          assert &and[ Im(EmbedExtra(xi : iota := iota)) gt CC`epscomp : iota in Phi ];
+          Append(~AVs, [* Phi, aa, xi *]);
+      end for;
+  end for;
+  vprint CMExp, 1 : "done.";
 
-/* Creating and period matrices and counting vanishing even theta constants */
-vprint CMExp, 1 : "Calculating thetas...";
-schottky_vals := [];
-for AV in AVs do
-    Phi, aa, xi := Explode(AV);
-
-    // Extract and make into function?
-    /* Recover period matrix */
-    B := Basis(aa); B := [ K ! b : b in B ];
-    P := Matrix(CC, [ [ EmbedExtra(b : iota := iota) : b in B ] : iota in Phi ]);
-
-    /* Recover principal polarization */
-    E := Matrix([ [ Trace(xi*invK(x)*y) : x in B ] : y in B ]);
-    E := ChangeRing(E, Rationals());
-    E := -E;
-
-    /* Convert to big period matrix */
-    E := ChangeRing(E, Integers());
-    E0, T := FrobeniusFormAlternating(E);
-    P := P*ChangeRing(Transpose(T), CC);
-
-    /* Convert to small period matrix and reduce */
-    tau := SmallPeriodMatrix(P);
-    /*
-    vprint CMExp, 1 : "Reducing period matrix...";
-    tau := ReduceSmallPeriodMatrix(tau);
-    vprint CMExp, 1 : "done with reduction.";
-    tausmall := ChangeRing(tau, CCtheta);
-    */
-
-    /* Calculate Schottky modular form and return */
-    vprint CMExp, 1 : "Reducing period matrix...";
-    tau_red := SiegelReduction(tau);
-    tau_red := (tau_red + Transpose(tau_red))/2; // hack
-    s := SchottkyModularFormFlint(tau_red : prec := prectheta);
-    Append(~schottky_vals, [* K, Phi, aa, xi, Abs(s) *]); // field, CM-type, ideal class, polarization, s;
-end for;
-vprint CMExp, 1 : "done.";
-return schottky_vals;
+  /* Creating and period matrices and counting vanishing even theta constants */
+  vprint CMExp, 1 : "Calculating thetas...";
+  schottky_vals := [];
+  for AV in AVs do
+      Phi, aa, xi := Explode(AV);
+      tau_red := PeriodMatrixFromCMType(K, Phi, aa, xi, invK);
+      s := SchottkyModularFormFlint(tau_red : prec := prectheta);
+      Append(~schottky_vals, [* K, Phi, aa, xi, invK, Abs(s) *]); // field, CM-type, ideal class, polarization, s;
+  end for;
+  vprint CMExp, 1 : "done.";
+  return schottky_vals;
 
 end intrinsic;
 
@@ -791,18 +787,19 @@ end intrinsic;
 intrinsic EnumerationUpToGalois(datum::List : exp := 4, prec := 300, precred := 200, prectheta := 100, Labrande := false, ClassBound := Infinity()) -> .
 {Finds the equivalence classes of CM curves for the given datum. ClassBound bounds the class number.}
 
-/* Recover polynomial */
-R<x> := PolynomialRing(Rationals());
-f := R ! datum[2];
+  /* Recover polynomial */
+  R<x> := PolynomialRing(Rationals());
+  f := R ! datum[2];
 
-/* Calculate if passes class test */
-K := NumberField(f);
-if #ClassGroup(K) gt ClassBound then return [ ]; end if;
-return EnumerationUpToGalois(f : exp := exp, prec := prec, precred := precred, prectheta := prectheta);
+  /* Calculate if passes class test */
+  K := NumberField(f);
+  if #ClassGroup(K) gt ClassBound then return [ ]; end if;
+  return EnumerationUpToGalois(f : exp := exp, prec := prec, precred := precred, prectheta := prectheta);
 
 end intrinsic;
 
 // Now compute invariants for abvars that pass the Schottky check
+// TODO: write big function
 
 /*
 Input: K, Phi, aa, xi, Abs(s)
@@ -817,6 +814,32 @@ Output: Invariants of the associated genus 4 curve
 5) Reconstruct curve from recognized invariants
 
 */
+
+intrinsic ComputeCMCurveG4(K::FldNum, Phi::Any, aa::RngOrdIdl, xi::FldNumElt, invK::Any, s_size::FldReElt : prec := Precision(Parent(s_size))/2) -> Any
+  {Input: K, Phi (CM type), aa (ideal class representative), xi (totally imaginary element giving polarization), invK (complex conjugation involution), s_size (size of Schottky value), Output: Invariants of the associated genus 4 curve}
+
+  tau := PeriodMatrixFromCMType(K, Phi, aa, xi, invK::Any) -> Any
+  bound := 10^(-prec);
+  if s_size gt bound then
+    return false;
+  end if;
+
+  // reconstruct curve over CC
+  Eqs := ReconstructCurveG4(tau_red : flint := true);
+  if #Eqs eq 7 then // hyperelliptic case
+      vprint CM: "Hyperelliptic case";
+      //return 1, 0, "hyp";
+      return FindCurveHyperelliptic(Eqs), 0;
+  elif #Eqs eq 2 then
+      vprint CM: "Non-hyperelliptic curve";
+      Q, E := Explode(Eqs);
+      return Q, E;
+      //K;
+      Q, E, djn := FindCurveNonHyperelliptic(Q, E : K := K);
+      return Q, E, djn;
+  end if;
+  error("Not the right number of equations, error in reconstructing-g4 package");
+end intrinsic;
 
 function ClassGroupDataf(f : exp := 4, prec := 300, precred := 200)
 /* We follow Streng's argument in Proposition 4.4 of "Computing Igusa class polynomials" and optimize along the way  */
