@@ -23,9 +23,23 @@ function ReflexType(G, Phi)
 	return sub<G|Hr>, Phir;
 end function;
 
+// Given CM type Phi, identify which element of CM types
+// it is conjugate to
+function IdentifyCMType(G, Phi, CMtypes)
+  orbit := Setseq({{x^g: x in Phi}: g in G});
+  for Phi0 in CMtypes do
+    if Phi0 in orbit then
+      return Phi0;
+    end if;
+  end for;
+end function;
+
+// Storing exponent bounds in nested associative array
+// each key is G; each value is another associative array whose keys are CM types Phi; each value of that is the exponent bound
 Gs := TransitiveGroups(2*d, IsGaloisGroupOfCMField);
-exps := [];
+exps := AssociativeArray();
 for G in Gs do
+    expsG := AssociativeArray();
 	A := GroupAlgebra(Rationals(), G);
 	X := MinimalPartition(G);
 	H := sub<G|[h:h in G| 1^h eq 1]>;
@@ -74,6 +88,7 @@ for G in Gs do
         Rel := ChangeRing(Rel,Integers());
         k := KernelMatrix(Rel);
         exp := GCD(Eltseq(Rows(Transpose(k))[Ncols(k)]));
-        Append(~exps, <G, Phi, exp>);
+        expsG[Phi] := exp;
 	end for;
+    exps[G] := expsG;
 end for;
