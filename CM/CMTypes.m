@@ -36,59 +36,65 @@ end function;
 
 // Storing exponent bounds in nested associative array
 // each key is G; each value is another associative array whose keys are CM types Phi; each value of that is the exponent bound
-Gs := TransitiveGroups(2*d, IsGaloisGroupOfCMField);
-exps := AssociativeArray();
-for G in Gs do
-    expsG := AssociativeArray();
-	A := GroupAlgebra(Rationals(), G);
-	X := MinimalPartition(G);
-	H := sub<G|[h:h in G| 1^h eq 1]>;
-	T,m := Transversal(G, H);
-	sig := G![[Random(x diff {y}): x in X | y in x][1]: y in [1..2*d]];
-	CMtypes := CartesianProduct([X[i]: i in [1..d]]);
-	cmtypeorbits := {};
-	for Phi in CMtypes do
-		orbit := {{x^g: x in Phi}: g in G};
-	        Include(~cmtypeorbits, orbit);
-		if #CMtypes eq &+[#o: o in cmtypeorbits] then break Phi; end if;
+
+function Exponents()
+	Gs := TransitiveGroups(2*d, IsGaloisGroupOfCMField);
+	exps := AssociativeArray();
+	for G in Gs do
+		A := GroupAlgebra(Rationals(), G);
+		X := MinimalPartition(G);
+		H := sub<G|[h:h in G| 1^h eq 1]>;
+		T,m := Transversal(G, H);
+		sig := G![[Random(x diff {y}): x in X | y in x][1]: y in [1..2*d]];
+		CMtypes := CartesianProduct([X[i]: i in [1..d]]);
+		cmtypeorbits := {};
+		for Phi in CMtypes do
+			orbit := {{x^g: x in Phi}: g in G};
+				Include(~cmtypeorbits, orbit);
+			if #CMtypes eq &+[#o: o in cmtypeorbits] then break Phi; end if;
+		end for;
+		CMtypespri := [Setseq(o)[1]: o in cmtypeorbits| IsPrimitiveType(G, Setseq(o)[1])];
+		if TransitiveGroupIdentification(G) in {13, 24} then
+			exps[TransitiveGroupIdentification(G)] := {0, 4};
+		else
+			if CMtypespri ne [] then
+				Phi := CMtypespri[1];
+				Hr, Phir := ReflexType(G, Phi);
+				refl := &+[A!phi: phi in Phir];
+				refln := &+[A![g: g in G|1^g eq phi][1]: phi in Phi];
+				Mr  := PermutationModule(G, Hr, Rationals());
+				M := PermutationModule(G, Rationals());
+				T := [t: t in T];
+				T0 := [[i: i in [1..#T]| M.i eq M.1*T[j]][1]: j in [1..#T]];
+				ParallelSort(~T0 ,~T);
+				assert Basis(M) eq [M.1*T[i]: i in [1..#T]];
+				Mat := Matrix([Eltseq(&+[Mr.1*phi*T[i]: phi in Phir] ): i in [1..#T]]);
+				f := hom<M->Mr|Mat>;
+				assert IsModuleHomomorphism(Hom(M,Mr)!f);
+				// Want {phi: Mr -> M such that phi*f*iota = iota}
+				// where iota: Msig -> M
+				V := GHom(Mr,M);
+				B := Basis(V);
+				Bint := [];
+				for b in B do
+				bint := Denominator(b)*b;
+				Append(~Bint, bint);
+				end for;
+				Msig := sub< M | [b*sig - b : b in Basis(M)] >;
+				Mrsig := sub< Mr | [b*sig - b : b in Basis(Mr)] >;
+				// create inclusion map Mrsig -> Mr
+				iota := Matrix([Coordinates(M,b) : b in Basis(Msig)]);
+				rows := [Eltseq(iota*Mat*b) : b in Bint];
+				Append(~rows, Eltseq(iota));
+				Rel := Matrix(rows);
+				// make matrix integral
+				Rel *:= Denominator(Rel);
+				Rel := ChangeRing(Rel,Integers());
+				k := KernelMatrix(Rel);
+				exp := GCD(Eltseq(Rows(Transpose(k))[Ncols(k)]));
+				exps[TransitiveGroupIdentification(G)] := exp;
+			end if;
+		end if;
 	end for;
-	CMtypespri := [Setseq(o)[1]: o in cmtypeorbits| IsPrimitiveType(G, Setseq(o)[1])];
-	for Phi in CMtypespri do
-		Hr, Phir := ReflexType(G, Phi);
-		refl := &+[A!phi: phi in Phir];
-		refln := &+[A![g: g in G|1^g eq phi][1]: phi in Phi];
-		Mr  := PermutationModule(G, Hr, Rationals());
-		M := PermutationModule(G, Rationals());
-		T := [t: t in T];
-		T0 := [[i: i in [1..#T]| M.i eq M.1*T[j]][1]: j in [1..#T]];
-		ParallelSort(~T0 ,~T);
-		assert Basis(M) eq [M.1*T[i]: i in [1..#T]];
-		Mat := Matrix([Eltseq(&+[Mr.1*phi*T[i]: phi in Phir] ): i in [1..#T]]);
-		f := hom<M->Mr|Mat>;
-		IsModuleHomomorphism(Hom(M,Mr)!f);
-        	print G, Phi;
-        // Want {phi: Mr -> M such that phi*f*iota = iota}
-        // where iota: Msig -> M
-        V := GHom(Mr,M);
-        B := Basis(V);
-        Bint := [];
-        for b in B do
-          bint := Denominator(b)*b;
-          Append(~Bint, bint);
-        end for;
-        Msig := sub< M | [b*sig - b : b in Basis(M)] >;
-        Mrsig := sub< Mr | [b*sig - b : b in Basis(Mr)] >;
-        // create inclusion map Mrsig -> Mr
-        iota := Matrix([Coordinates(M,b) : b in Basis(Msig)]);
-        rows := [Eltseq(iota*Mat*b) : b in Bint];
-        Append(~rows, Eltseq(iota));
-        Rel := Matrix(rows);
-        // make matrix integral
-        Rel *:= Denominator(Rel);
-        Rel := ChangeRing(Rel,Integers());
-        k := KernelMatrix(Rel);
-        exp := GCD(Eltseq(Rows(Transpose(k))[Ncols(k)]));
-        expsG[Phi] := exp;
-	end for;
-    exps[G] := expsG;
-end for;
+	return exps;
+end function;

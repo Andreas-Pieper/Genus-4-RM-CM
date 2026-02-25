@@ -2,6 +2,7 @@ declare verbose CM, 1;
 
 declare verbose CMExp, 2;
 
+
 // does full enumeration, not taking Galois action into account
 intrinsic FullEnumerationG4(f::RngUPolElt : prec := 300, exp := Infinity(), FixCMType := false) -> .
   {Finds the equivalence classes of CM curves given a polynomial.}
@@ -683,7 +684,7 @@ intrinsic PeriodMatrixFromCMType(K::FldNum, Phi::Any, aa::RngOrdIdl, xi::FldNumE
   return tau_red;
 end intrinsic;
 
-intrinsic EnumerationUpToGalois(f::RngUPolElt : exp := 4, prec := 50, precred := 50, prectheta := 50) -> .
+intrinsic EnumerationUpToGalois(f::RngUPolElt : exp := 8, prec := 50, precred := 50, prectheta := 50) -> .
 {Finds all abelian varieties with primitive CM by the maximal order of the number field defined by f up to Galois conjugation.}
 
   // FIXME: determine bound on exponenent of quotient of group
@@ -787,7 +788,7 @@ intrinsic EnumerationUpToGalois(f::RngUPolElt : exp := 4, prec := 50, precred :=
 end intrinsic;
 
 
-intrinsic EnumerationUpToGalois(datum::List : exp := 4, prec := 300, precred := 200, prectheta := 100, Labrande := false, ClassBound := Infinity()) -> .
+intrinsic EnumerationUpToGalois(datum::List : exp := 8, prec := 300, precred := 200, prectheta := 100, Labrande := false, ClassBound := Infinity()) -> .
 {Finds the equivalence classes of CM curves for the given datum. ClassBound bounds the class number.}
 
   /* Recover polynomial */

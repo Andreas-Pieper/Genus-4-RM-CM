@@ -6,6 +6,9 @@ AttachSpec("~/github/Reconstruction/magma/spec");
 Attach("~/github/Genus-4-RM-CM/flint-stuff/schottky-fast-theta.m");
 Attach("~/github/Genus-4-RM-CM/CM/findg4.m");
 
+import "CMTypes.m" : Exponents;
+exps := Exponents();
+
 function Normalize(inv, wgt : prec := Precision(Parent(inv[1])), j := "not def")
     _, i0 := Max([Abs((inv[i]) ^ (1 / wgt[i])) : i in [1..#inv]]); // find the biggest normalizing factor possible
 
@@ -164,6 +167,25 @@ function FindCurveNonHyperelliptic(Q, E : K := [Rationals()])
             "LLL did not work...";
         end try;
     end if;
+end function;
+
+function FindCurveFromCMPoly(datum, expos)
+    if expos[eval Split(datum[4], "T")[2]] in {13, 24} then // FIXME later, edge cases C2xA4, C2xS4
+        return [* *]; 
+    end if;
+    R<x> := PolynomialRing(Rationals());
+    coeffs := datum[2];
+    f := R!coeffs;
+    taus := EnumerationUpToGalois(f : exp := expos[eval Split(datum[4], "T")[2]], prec := 5000);
+    taus := [t[1] : t in taus];
+    curves_f := [* *];
+    for tau in taus do 
+        L := FindCurve(tau);
+        if L ne [] then // actual curve
+            Append(~curves_f, L);
+        end if;
+    end for;
+    return curves_f;
 end function;
 
 // Input: taus, a Galois orbit of period matrices
