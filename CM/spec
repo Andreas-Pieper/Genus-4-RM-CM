@@ -2,4 +2,5 @@
   findg4.m
   cm-g4.m
   IO.m
+  ../flint-stuff/schottky-fast-theta.m
 }

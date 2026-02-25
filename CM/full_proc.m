@@ -22,49 +22,104 @@ function Normalize(inv, wgt : prec := Precision(Parent(inv[1])), j := "not def")
     return res;
 end function;
 
-function IsDeJongNoot(inv)
-    if #inv eq 60 then
-        non_zero := [i : i in [1..#inv] | inv[i] ne 0];
-        if Max(non_zero) le 5 then 
-            return true, 1;
-        elif &and[i in [ 4, 5, 9, 20, 24, 49, 57 ] : i in non_zero] then
-            return true, 2;
-        end if;
-    end if;
-    return false, 0;
+function InvsRank3(invs)
+  invs := [invs[i] : i in [1, 2, 3, 4, 8, 13, 24, 43, 54]];
+  invs := Normalize(invs, [6, 12, 18, 30, 8, 14, 20, 26, 32]);
+  try 
+    prec := Precision(Parent(rosensCC[1]));
+    K := RationalsExtra(prec);
+    L, _ := NumberFieldExtra(invs[1..2], K);// Alternative when class group not trivial: store them and wait to know the full Galois orbit 
+    I := AlgebraizeElementsExtra(invs, L); 
+  catch e
+    error("Not able to recognize field of moduli");
+  end try;
+  a11 := I[3];
+  a12 := 1/3*(-1/3*I[1]^2*I[2] + I[1]*I[3] + 2*I[2]^2);
+  a13 := 1/54*I[1]^3*I[2] - 1/18*I[1]^2*I[3] - 1/9*I[1]*I[2]^2 + 1/3*I[2]*I[3] + 1/2*I[4];
+  a22 := 1/54*I[1]^3*I[2] - 1/18*I[1]^2*I[3] - 1/9*I[1]*I[2]^2 + 1/3*I[2]*I[3] + 1/2*I[4];
+  a23 := 1/3*(-1/6*I[1]^2*I[2]^2 + 1/3*I[1]*I[2]*I[3] + I[2]^3 + 1/2*I[3]^2);
+  a33 := 1/2*(5/162*I[1]^3*I[2]^2 - 7/54*I[1]^2*I[2]*I[3] - 5/27*I[1]*I[2]^3 + 1/9*I[1]*I[3]^2 + 5/9*I[2]^2*I[3] + 1/2*I[2]*I[4]);
+
+  v11 := I[7];
+  v12 := I[8];
+  v13 := -1/18*I[1]^2*I[2]*I[5] + 1/12*I[1]*I[3]*I[5] + 1/3*I[2]^2*I[5] + 1/4*I[2]*I[7] + 1/4*I[3]*I[6] - 1/2*I[9];
+  v22 := I[9];
+  v23 := 1/54*I[1]^3*I[2]*I[5] - 1/36*I[1]^2*I[2]*I[6] - 1/18*I[1]^2*I[3]*I[5] -
+          1/9*I[1]*I[2]^2*I[5] + 1/36*I[1]*I[2]*I[7] + 1/12*I[1]*I[3]*I[6] +
+          1/6*I[2]^2*I[6] + 1/6*I[2]*I[3]*I[5] - 1/12*I[3]*I[7] + 1/4*I[4]*I[5];
+  v33 := -1/324*I[1]^4*I[2]*I[5] + 1/108*I[1]^3*I[2]*I[6] + 1/108*I[1]^3*I[3]*I[5] -
+          1/27*I[1]^2*I[2]^2*I[5] - 1/36*I[1]^2*I[3]*I[6] - 1/18*I[1]*I[2]^2*I[6] +
+          1/18*I[1]*I[2]*I[3]*I[5] + 1/9*I[1]*I[2]*I[8] - 1/12*I[1]*I[4]*I[5] +
+          1/3*I[2]^3*I[5] + 1/6*I[2]*I[3]*I[6] - 1/2*I[2]*I[9] + 1/6*I[3]^2*I[5] -
+          1/3*I[3]*I[8] + 1/4*I[4]*I[6];
+
+  f111 := I[4];
+  f112 := 1/3*(1/54*I[1]^4*I[2] - 1/18*I[1]^3*I[3] - 2/9*I[1]^2*I[2]^2 + 1/3*I[1]*I[2]*I[3] + 1/2*I[1]*I[4] + 2/3*I[2]^3 + I[3]^2);
+  f113 := 1/3*(-1/6*I[1]^2*I[2]*I[3] + 1/2*I[1]*I[3]^2 + I[2]^2*I[3] + 1/2*I[2]*I[4]);
+  f122 := 1/3*(-1/6*I[1]^2*I[2]*I[3] + 1/2*I[1]*I[3]^2 + I[2]^2*I[3] + 1/2*I[2]*I[4]);
+  f123 := 1/3*(1/108*I[1]^4*I[2]^2 - 1/36*I[1]^3*I[2]*I[3] - 1/9*I[1]^2*I[2]^3 + 1/6*I[1]*I[2]^2*I[3] + 1/12*I[1]*I[2]*I[4] +
+          1/3*I[2]^4 + 1/2*I[2]*I[3]^2 + 1/2*I[3]*I[4]);
+  f133 := 1/3*(-1/972*I[1]^5*I[2]^2 + 1/162*I[1]^4*I[2]*I[3] + 1/81*I[1]^3*I[2]^3 - 1/108*I[1]^3*I[3]^2 - 5/36*I[1]^2*I[2]^2*I[3]
+            - 1/36*I[1]^2*I[2]*I[4] - 1/27*I[1]*I[2]^4 + 1/4*I[1]*I[2]*I[3]^2 + 1/12*I[1]*I[3]*I[4] + 11/18*I[2]^3*I[3] +
+          1/4*I[2]^2*I[4] + 1/6*I[3]^3);
+  f222 := 1/3*(1/36*I[1]^4*I[2]^2 - 1/6*I[1]^3*I[2]*I[3] - 1/3*I[1]^2*I[2]^3 + 1/4*I[1]^2*I[3]^2 + I[1]*I[2]^2*I[3] +
+            1/12*I[1]*I[2]*I[4] + I[2]^4 - 1/4*I[3]*I[4]);
+  f223 := -1/729*I[1]^5*I[2]^2 + 2/243*I[1]^4*I[2]*I[3] + 4/243*I[1]^3*I[2]^3 - 1/81*I[1]^3*I[3]^2 - 2/27*I[1]^2*I[2]^2*I[3]
+          - 1/27*I[1]^2*I[2]*I[4] - 4/81*I[1]*I[2]^4 + 1/12*I[1]*I[2]*I[3]^2 + 1/9*I[1]*I[3]*I[4] + 4/27*I[2]^3*I[3] +
+          1/4*I[2]^2*I[4] - 1/36*I[3]^3;
+  f233 := 1/5832*I[1]^6*I[2]^2 - 1/972*I[1]^5*I[2]*I[3] - 1/1944*I[1]^4*I[2]^3 + 1/648*I[1]^4*I[3]^2 +
+          1/324*I[1]^3*I[2]^2*I[3] + 1/108*I[1]^3*I[2]*I[4] - 1/81*I[1]^2*I[2]^4 - 1/216*I[1]^2*I[2]*I[3]^2 -
+          1/36*I[1]^2*I[3]*I[4] + 1/54*I[1]*I[2]^3*I[3] - 11/216*I[1]*I[2]^2*I[4] + 1/18*I[2]^5 + 1/18*I[2]^2*I[3]^2 +
+          11/72*I[2]*I[3]*I[4] + 1/8*I[4]^2;
+  f333 := -1/1944*I[1]^5*I[2]^3 + 1/648*I[1]^4*I[2]^2*I[3] + 1/162*I[1]^3*I[2]^4 + 1/216*I[1]^3*I[2]*I[3]^2 -
+          1/54*I[1]^2*I[2]^3*I[3] - 13/648*I[1]^2*I[2]^2*I[4] - 1/72*I[1]^2*I[3]^3 - 1/54*I[1]*I[2]^5 -
+          1/72*I[1]*I[2]^2*I[3]^2 + 1/27*I[1]*I[2]*I[3]*I[4] + 1/18*I[2]^4*I[3] + 1/8*I[2]^3*I[4] + 1/24*I[2]*I[3]^3 +
+          5/72*I[3]^2*I[4];
+  res := [a11,a12,a13,a22,a23,a33,v11,v12,v13,v22,v23,v33,f111,f112,f113,f122,f123,f133,f222,f223,f233,f333];
+  wgt := [18,24,30,30,36,42, 20,26,32,32,38,44, 30,36,42,42,48,54,48,54,60,66];
+  
+  return res, wgt;
 end function;
 
 function FindCurveHyperelliptic(rosensCC) // Fix me warning
     K<x,y> := PolynomialRing(Universe(rosensCC),2);
-    return y*x*(x-y)*(&*[x-r*y : r in rosensCC]);
-
-    prec := Precision(Parent(rosensCC[1]));
-    K := RationalsExtra(prec);
-    L, rosens := NumberFieldExtra(rosensCC, K);
-    _<x,y> := PolynomialRing(Parent(rosens[1]), 2);
-    
-    f := y*x*(x-y)*(&*[x-r*y : r in rosens]);
-    inv, wgt := InvariantsGenus4Curves(f);// : normalize := true);
-    vprint CM: "Computing an optimized normalized model...";
-    inv_opti := WPSNormalize(wgt, inv);
-
-    vprint CM: "Computing better model...";        
-    t, lambda := IsSquare(inv[1]/inv_opti[1]);
-    if not t then
-      // TODO: introduce quadratic extension
-    end if;
+    f :=  y*x*(x-y)*(&*[x-r*y : r in rosensCC]);
 
     C_24 := Transvectant(f, f, 8);
     C_28 := Transvectant(f, f, 6);
-    c_3 := 1/lambda^3*Transvectant(C_28, f, 8);
-    c_5_1 := 1/lambda^2*Transvectant(C_24, c_3, 2);
-    c_5_2 := 1/lambda^5*Transvectant(C_28, Transvectant(C_24, f, 4), 6);
+    c_3 := Transvectant(C_28, f, 8);
+    c_5_1 := Transvectant(C_24, c_3, 2);
+    c_5_2 := Transvectant(C_28, Transvectant(C_24, f, 4), 6);
 
     C := [c_3, c_5_1, c_5_2];
+    wgt := [3, 5, 5];
 
-    _<[X]> := PolynomialRing(Parent(inv_opti[1]), 3);
-    Q := &+[Rationals()!(Evaluate(Transvectant(C[i], C[j], 2), [0,0]))*X[i]*X[j] : i in [1..3], j in [1..3]];
-    E := &+[Rationals()!(1/lambda*Evaluate(Transvectant(C[i1]*C[i2]*C[i3]*C[i4]*C[i5], f, 10), [0,0]))*X[i1]*X[i2]*X[i3]*X[i4]*X[i5] : i1 in [1..3], i2 in [1..3], i3 in [1..3], i4 in [1..3], i5 in [1..3]];
+    invsQ := [Evaluate(Transvectant(C[i], C[j], 2), [0,0]) : j in [i..3], i in [1..3]];
+    invsE := [Evaluate(Transvectant(C[i1]*C[i2]*C[i3]*C[i4]*C[i5], f, 10), [0,0]) : i5 in [i4..3], i4 in [i3..3], i3 in [i2..3], i2 in [i1..3], i1 in [1..3]];
+    
+    WgtQ := [wgt[i]+wgt[j] : j in [i..3], i in [1..3]];
+    WgtE := [wgt[i1]+wgt[i2]+wgt[i3]+wgt[i4]+wgt[i5] : i5 in [i4..3], i4 in [i3..3], i3 in [i2..3], i2 in [i1..3], i1 in [1..3]];
+
+    invs := Normalize(invsQ cat invsE, WgtQ cat WgtE);
+    invsQNorm := invs[1..6];
+    invsENorm := invs[7..#invs];
+    try 
+        prec := Precision(Universe(invsQNorm));
+        K := RationalsExtra(prec);
+        L, _ := NumberFieldExtra(invsQNorm[1..2], K);// Alternative when class group not trivial: store them and wait to know the full Galois orbit 
+        _, InvsQInt := AlgebraizeElementsExtra(invsQNorm, L); // linear algebra
+        _, InvsEInt := AlgebraizeElementsExtra(invsENorm, L); // linear algebra
+    catch e
+        error("Not able to recognize field of moduli");
+    end try;
+    
+    LQ := [[i, j] : j in [i..3], i in [1..3]];
+    LE := [ [i1, i2, i3, i4, i5]: i5 in [i4..3], i4 in [i3..3], i3 in [i2..3], i2 in [i1..3], i1 in [1..3]];
+    
+    _<[X]> := PolynomialRing(L, 3);
+
+    Q := &+[InvsQNorm[Index(Sort([i, j]), LQ)]*X[i]*X[j] : i in [1..3], j in [1..3]];
+    E := &+[InvsENorm[Index(Sort([i1, i2, i3, i4, i5]), LE)]*X[i1]*X[i2]*X[i3]*X[i4]*X[i5] : i1 in [1..3], i2 in [1..3], i3 in [1..3], i4 in [1..3], i5 in [1..3]];
 
     Con := Conic(ProjectiveSpace(Parent(Q)), Q);
 
@@ -88,115 +143,27 @@ function FindCurveHyperelliptic(rosensCC) // Fix me warning
 
 end function;
 
-function OliveToIgusa(I)
-    J1 := -15*I[1];
-    J2 := 45/8*(3*I[1]^2 - 25/2*I[2]);
-    J3 := 15/8*(9/2*I[1]^3 - 25*I[1]*I[2] - 375/4*I[3]);
-    J4 := (J1*J3-J2^2)/4;
-    J5 := 81/16*(-3*I[1]^5 + 7625/256*I[1]^3*I[2] + 13125/256*I[1]^2*I[3] - 9375/128*I[1]*I[2]^2 - 28125/128*I[2]*I[3] - 28125/256*I[4]);
-    return [J1,J2,J3,J4,J5];
-end function;
-
 function FindCurveNonHyperelliptic(Q, E : K := [Rationals()])
     CC4<X,Y,Z,T> := Parent(Q);
     CC<I> := BaseRing(CC4);
     inv, wgt := InvariantsGenus4Curves(Q, E);
-    inv := Normalize(inv, wgt);
-    //ChangeUniverse(inv, ComplexField(5));
-
-    prec := Precision(Parent(inv[1]));
-    F := RationalsExtra(prec);
-
     if #inv eq 60 then
-        "Rank 3 case";
-        if Max([i : i->el in inv | el ne 0]) le 5 then 
-            "Only sextic is non-zero";
-            return 2, 2, true;
-            invs := WPSNormalize([2, 4, 6, 10], inv[1..4]);
-            try 
-                "Trying LLL...";
-                L, invs_alg := NumberFieldExtra(invs, RationalsExtra(prec));
-                "LLL worked";
-                L;
-                printf "De Jong-Noot : %o\n", true;
-                Q, E := ReconstructionGenus4(invs_alg cat [0 : i in [1..56]]);
-                return Q, E, true;
-            catch e 
-                "LLL didn't work";
-                return 0, 0, 0;
-            end try;
-        else
-            try 
-                if IsDeJongNoot(inv) then
-                    return 2, 2, true;
-                else
-                    return 2, 2, false;
-                    "Trying LLL sextic...";
-                    invs := WPSNormalize([2, 4, 6, 10], inv[1..4]);
-                    L, invs_alg := NumberFieldExtra(invs, RationalsExtra(prec));
-                    "LLL sextic worked";
-                    try 
-                        L1, invs_alg := NumberFieldExtra(inv, L);
-                        "LLL all worked";
-                        printf "De Jong-Noot : %o\n", IsDeJongNoot(invs_alg);
-                        Q, E := ReconstructionGenus4(invs_alg);
-                        return Q, E, IsDeJongNoot(invs_alg);
-                    catch e
-                        "LLL all didn't work";
-                        return 0,0,0;
-                    end try;
-                end if;
-            catch e 
-                "LLL didn't work, should try something more precise";
-                return 0,0,0;
-            end try;
-        end if;
-/* need to finish this to cover all cases
-        igu := WPSNormalize([2, 4, 6, 8, 10], OliveToIgusa(inv[1..4]));
-        ChangeUniverse(igu, ComplexField(30));
-        try 
-            "Trying LLL...";
-            L, igu_alg := NumberFieldExtra(igu, RationalsExtra(prec));
-            L;
-            "LLL worked";
-        catch e 
-            "LLL didn't work...";
-            return 0,0;
-        end try;
-
-        if igu_alg ne [0,0,0,0,0] then  
-            igu_alg;
-            f_rec := HyperellipticPolynomials(HyperellipticCurveFromIgusaInvariants(igu_alg : minimize := true));
-            lis := &cat[Flat(c) : c in Coefficients(f_rec)];
-            f_rec *:= GCD([Denominator(c) : c in lis])/GCD([Numerator(c) : c in lis]);
-            nu := InfinitePlaces(L);
-            i0 := Min([i : i in [1..#nu] | Min([Abs(Evaluate(igu_alg[j], nu[i])-igu[j]) : j in [1..#igu_alg]]) le 10^(-prec/2)]);
-            i0; // now we know which embedding it is
-        else
-            f_rec := 0;
-        end if;
-        // recognize all invariants which could work
-        // 
-        if inv[8] ne 0 then
-            sec_inv := [1, inv[13]/(inv[8]*inv[1]), inv[24]/(inv[8]*inv[1]^2), inv[43]/(inv[8]*inv[1]^3), inv[54]/(inv[8]*inv[1]^4)];
-            L1, sec_alg := NumberFieldExtra(sec_inv, RationalsExtra(prec));
-            sec_alg;
-        else
-            // todo
-        end if;*/
-   else
-        "Rank 4 case";
-        return 2, 2, "rank 4";    
+        invs_rec := InvsRank3(inv);
+        Q, E := ReconstructionGenus4Rank3(invs_rec);
+    elif #inv eq 65 then
         try
+            invsNorm := Normalize(inv, wgt);
             "Trying LLL...";
-            L, inv_rec := NumberFieldExtra(inv, F);
+            prec := Precision(Universe(invsQNorm));
+            K := RationalsExtra(prec);
+            L := NumberFieldExtra(invsNorm[1..2], K);
+            _, inv_rec := AlgebraizeElementsExtra(invsNorm, L);
             Q, E := ReconstructionGenus4(inv_rec);
-            return Q, E, IsDeJongNoot(inv_rec);
+            return Q, E;
         catch e
             "LLL did not work...";
         end try;
     end if;
-    return 0,0,0;
 end function;
 
 // Input: taus, a Galois orbit of period matrices
@@ -209,12 +176,10 @@ function FindCurve(tau : prec := Precision(BaseRing(tau)), K := Rationals())
     tau_red := (tau_red + Transpose(tau_red))/2;
     
     vprint CM: "Checking if Jacobian...";
-    sch := SchottkyModularForm(tau_red : prec := (prec div 3), flint := true);
-    RealField(5)!Abs(sch);
+    sch := SchottkyModularForm(tau_red : prec := (prec div 3));
     if Abs(sch) gt 10^(-prec/4) then
-        //Abs(SchottkyModularForm(SiegelReduction(tau_red) : prec := 50, flint := false));
         vprint CM: "Not a jacobian.";
-        return 0, 1, 0;
+        return [];
     end if;
     vprint CM: "It is probably a jacobian.";
     vprint CM: "Norm of the Schottky modular form: %o\n", Abs(sch);
@@ -223,17 +188,13 @@ function FindCurve(tau : prec := Precision(BaseRing(tau)), K := Rationals())
 
     if #Eqs eq 7 then // hyperelliptic case
         vprint CM: "Hyperelliptic case";
-        //return 1, 0, "hyp";
-        return FindCurveHyperelliptic(Eqs), 0;
+        return [FindCurveHyperelliptic(Eqs)];
     elif #Eqs eq 2 then
         vprint CM: "Non-hyperelliptic curve";
         Q, E := Explode(Eqs);
-        return Q, E;
-        //K;
-        Q, E, djn := FindCurveNonHyperelliptic(Q, E : K := K);
-        return Q, E, djn;
+        Q_rec, E_rec := FindCurveNonHyperelliptic(Q, E);
+        return [Q_rec, E_rec];
     end if;
 
-    vprint CM: "Not the right number of equations, error in reconstructing-g4 package";
-    return 0, 0, 0;
+    error("Not the right number of equations, error in reconstructing-g4 package"); 
 end function;
