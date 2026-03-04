@@ -661,6 +661,7 @@ end function;
 
 intrinsic PeriodMatrixFromCMType(K::FldNum, Phi::Any, aa::RngOrdIdl, xi::FldNumElt, invK::Any) -> Any
 {}
+  CC := K`CC;
   /* Recover period matrix */
   B := Basis(aa); B := [ K ! b : b in B ];
   P := Matrix(CC, [ [ EmbedExtra(b : iota := iota) : b in B ] : iota in Phi ]); // Fix this, CC is extra
@@ -780,7 +781,7 @@ intrinsic EnumerationUpToGalois(f::RngUPolElt : exp := 8, prec := 50, precred :=
       if Abs(s) lt RealField(10)!(10^(-prectheta/2)) then
         s := SchottkyModularForm(tau_red : prec := 1000);
       end if;
-      Append(~schottky_vals, [* K, Phi, aa, xi, invK, Abs(s) *]); // field, CM-type, ideal class, polarization, s;
+      Append(~schottky_vals, [* K, Phi, aa, xi, invK, RealField(10)!Abs(s) *]); // field, CM-type, ideal class, polarization, s;
   end for;
   vprint CMExp, 1 : "done.";
   return schottky_vals;
@@ -829,7 +830,7 @@ intrinsic ComputeCMCurveG4(K::FldNum, Phi::Any, aa::RngOrdIdl, xi::FldNumElt, in
   end if;
 
   // reconstruct curve over CC
-  Eqs := ReconstructCurveG4(tau_red : flint := true);
+  Eqs := ReconstructCurveG4(tau : flint := true);
   if #Eqs eq 7 then // hyperelliptic case
       vprint CM: "Hyperelliptic case";
       //return 1, 0, "hyp";

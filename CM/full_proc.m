@@ -84,7 +84,9 @@ function InvsRank3(invs)
   return res, wgt;
 end function;
 
-function FindCurveHyperelliptic(rosensCC) // Fix me warning
+// Fix me warning
+intrinsic FindCurveHyperelliptic(rosensCC::SeqEnum) -> Any
+  {}
     K<x,y> := PolynomialRing(Universe(rosensCC),2);
     f :=  y*x*(x-y)*(&*[x-r*y : r in rosensCC]);
 
@@ -144,9 +146,10 @@ function FindCurveHyperelliptic(rosensCC) // Fix me warning
         return Q, E, true;
     end try;
 
-end function;
+end intrinsic;
 
-function FindCurveNonHyperelliptic(Q, E : K := [Rationals()])
+intrinsic FindCurveNonHyperelliptic(Q::RngMPolElt, E::RngMPolElt : K := [Rationals()]) -> Any
+  {}
     CC4<X,Y,Z,T> := Parent(Q);
     CC<I> := BaseRing(CC4);
     inv, wgt := InvariantsGenus4Curves(Q, E);
@@ -167,9 +170,9 @@ function FindCurveNonHyperelliptic(Q, E : K := [Rationals()])
             "LLL did not work...";
         end try;
     end if;
-end function;
+end intrinsic;
 
-intrinsic FindCurvesFromCMPoly(datum::SeqEnum, expos::SeqEnum) -> Any
+intrinsic FindCurvesFromCMPoly(datum::SeqEnum, expos::Assoc) -> Any
   {Given the data extracted from the LMFDB and a sequence of bounds on the exponent of the class group, return all curves associated with the data} 
     if eval Split(datum[3], "T")[2] in {13, 24} then // FIXME later, edge cases C2xA4, C2xS4
         return [* *]; 

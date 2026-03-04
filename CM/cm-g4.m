@@ -1,3 +1,5 @@
+import "CMTypes.m" : Exponents;
+
 intrinsic InitializeDataFiles() -> Any 
   {}
 
@@ -5,37 +7,40 @@ intrinsic InitializeDataFiles() -> Any
   jac_filename := "cm-fields-jacobians.txt";
   for name in [all_filename, jac_filename] do
     System(Sprintf("touch %o", name));
-    Write(name, "Format: label, coeffs, index in list of taus, absolute value of Schottky form\n");
+    Write(name, "Format: label, coeffs, CM type, ideal class rep, polarizing element, complex conjugation, absolute value of Schottky form\n");
   end for;
   return Sprintf("Files %o and %o initialized", all_filename, jac_filename);
 end intrinsic;
 
-intrinsic CheckForJacobians(label::MonStgElt, coeffs_str::MonStgElt : prec := 80) -> Any
+intrinsic CheckForJacobians(label::MonStgElt, coeffs_str::MonStgElt, gal_label::MonStgElt : precred := 50, prectheta := 50, preccheck := 500) -> Any
   {}
 
+  exps := Exponents();
   coeffs := eval coeffs_str;
   QQ := RationalsExtra(prec);
   CC<I> := QQ`CC;
   eps := CC`epscomp;
   R<x> := PolynomialRing(QQ);
   f := R!coeffs;
-  taus := FullEnumerationG4(f);
+  d,k := Split(gal_label,"T");
+  vals := EnumerationUpToGalois(f : exp := exps[k]);
   all_filename := "cm-fields-schottky-values.txt";
   jac_filename := "cm-fields-jacobians.txt";
-  for i->tau in taus do
-    tau0 := tau;
-    if not IsSymmetric(tau0) then
-      tau0 := (tau0 + Transpose(tau0))/2;
-    end if;
-    tau_red := SiegelReduction(tau0);
-    if not IsSymmetric(tau_red) then
-      tau_red := (tau_red + Transpose(tau_red))/2;
-    end if;
-    sch := SchottkyModularForm(tau_red : prec := prec);
-    abs := Abs(sch);
-    output := StripWhiteSpace(Sprintf("%o|%o|%o|%o", label, coeffs, i, abs));
+  for val in vals do
+    K, Phi, aa, xi, invK, sch := Explode(datum);
+    output_list := [* *];
+    Phi_str := Sprint(Phi);
+    Phi_str := ReplaceString(Phi_str,"$.1", "I");
+    Append(~output_list, Phi_str);
+    Append(~output_list, Sprint(Generators(aa)));
+    Append(~output_list, Sprint(Eltseq(xi)));
+    Append(~output_list, Sprint(Eltseq(invK(K.1))));
+    Append(~output_list, Sprint(sch));
+    output := StripWhiteSpace(Sprintf(Join("|", [* label, coeffs *] cat output_list)));
+    // write all data to all file
     Write(all_filename, output);
-    if abs lt 10^(-prec*(3/8)) then
+    // write Jacobians to Jacobian file
+    if val[#val] lt 10^(-preccheck/2) then
       Write(jac_filename, output);
     end if;
   end for;
