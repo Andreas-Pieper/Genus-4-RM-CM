@@ -169,14 +169,15 @@ function FindCurveNonHyperelliptic(Q, E : K := [Rationals()])
     end if;
 end function;
 
-function FindCurveFromCMPoly(datum, expos)
-    if expos[eval Split(datum[4], "T")[2]] in {13, 24} then // FIXME later, edge cases C2xA4, C2xS4
+intrinsic FindCurvesFromCMPoly(datum::SeqEnum, expos::SeqEnum) -> Any
+  {Given the data extracted from the LMFDB and a sequence of bounds on the exponent of the class group, return all curves associated with the data} 
+    if eval Split(datum[3], "T")[2] in {13, 24} then // FIXME later, edge cases C2xA4, C2xS4
         return [* *]; 
     end if;
     R<x> := PolynomialRing(Rationals());
     coeffs := datum[2];
     f := R!coeffs;
-    taus := EnumerationUpToGalois(f : exp := expos[eval Split(datum[4], "T")[2]], prec := 5000);
+    taus := EnumerationUpToGalois(f : exp := expos[eval Split(datum[3], "T")[2]], prec := 5000);
     taus := [t[1] : t in taus];
     curves_f := [* *];
     for tau in taus do 
@@ -186,7 +187,7 @@ function FindCurveFromCMPoly(datum, expos)
         end if;
     end for;
     return curves_f;
-end function;
+end intrinsic;
 
 // Input: taus, a Galois orbit of period matrices
 //        F, intersection of field of moduli with the reflex field

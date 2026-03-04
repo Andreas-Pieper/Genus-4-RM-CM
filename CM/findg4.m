@@ -776,9 +776,9 @@ intrinsic EnumerationUpToGalois(f::RngUPolElt : exp := 8, prec := 50, precred :=
   for AV in AVs do
       Phi, aa, xi := Explode(AV);
       tau_red := PeriodMatrixFromCMType(K, Phi, aa, xi, invK);
-      s := SchottkyModularFormFlint(tau_red : prec := prectheta);
+      s := SchottkyModularForm(tau_red : prec := prectheta);
       if Abs(s) lt RealField(10)!(10^(-prectheta/2)) then
-        s := SchottkyModularFormFlint(tau_red : prec := 1000);
+        s := SchottkyModularForm(tau_red : prec := 1000);
       end if;
       Append(~schottky_vals, [* K, Phi, aa, xi, invK, Abs(s) *]); // field, CM-type, ideal class, polarization, s;
   end for;
