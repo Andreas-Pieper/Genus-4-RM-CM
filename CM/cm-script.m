@@ -7,7 +7,9 @@
 
   Then run the following command in the directory ~/github/Genus-4-RM-CM/CM
 
-parallel -j 16 --joblog joblog --eta --colsep '\|' -a CM-fields-deg-8.txt magma -b label:={1} coeffs:={2} gal_label:={3} cm-script.m
+parallel -j 16 --joblog joblog --eta --colsep '\|' -a CM-fields-deg-8.txt magma -b label:={1} coeffs:={2} gal_label:={3} CM/cm-script.m
+
+parallel -j 25 --joblog joblog --eta --colsep '\|' -a CM-fields-deg-8.txt --dry-run magma -b label:={1} coeffs:={2} gal_label:={3} CM/cm-script.m
 
 Use --dry-run to see what the commands would be run without actually executing
 */
@@ -17,7 +19,6 @@ AttachSpec("~/github/reconstructing-g4/magma/spec");
 AttachSpec("~/github/Genus-4-RM-CM/CM/spec");
 //AttachSpec("~/github/Genus-4/magma/spec");
 //AttachSpec("~/github/Reconstruction/magma/spec");
-AttachSpec("spec");
 
 try 
   print coeffs;
