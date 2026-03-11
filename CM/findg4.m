@@ -780,7 +780,7 @@ intrinsic EnumerationUpToGalois(f::RngUPolElt : exp := 8, prec := 50, precred :=
       tau_red := PeriodMatrixFromCMType(K, Phi, aa, xi, invK);
       s := SchottkyModularForm(tau_red : prec := prectheta);
       if Abs(s) lt RealField(10)!(10^(-prectheta/2)) then
-        s := SchottkyModularForm(tau_red : prec := 1000);
+        s := SchottkyModularForm(tau_red : prec := prec);
       end if;
       Append(~schottky_vals, [* K, Phi, aa, xi, invK, RealField(10)!Abs(s) *]); // field, CM-type, ideal class, polarization, s;
   end for;
