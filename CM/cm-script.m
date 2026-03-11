@@ -1,26 +1,27 @@
 /*
-  Usage: Make an input file cm-fields-deg-8-h-1.txt each of whose rows consists of an LMFDB field label and an LMFDB ideal label separated by a space using GenerateFieldsAndLevels. E.g., 
+  Usage: Make an input file CM-fields-deg-8.txt each of whose rows consists of an LMFDB field label, the coefficients of the defining polynomial, and the label of its Galois group. E.g., 
 
-  8.0.1265625.1|[1, -1, 0, 1, -1, 1, 0, -1, 1]
-  8.0.4000000.1|[1, 0, -1, 0, 1, 0, -1, 0, 1]
-  8.0.5308416.1|[1, 0, 0, 0, -1, 0, 0, 0, 1]
+  8.0.1265625.1|[1,-1,0,1,-1,1,0,-1,1]|8T2
+  8.0.4000000.1|[1,0,-1,0,1,0,-1,0,1]|8T2
+  8.0.5308416.1|[1,0,0,0,-1,0,0,0,1]|8T3
 
   Then run the following command in the directory ~/github/Genus-4-RM-CM/CM
 
-parallel -j 16 --joblog joblog --eta --colsep '\|' -a cm-fields-deg-8-h-1.txt magma -b label:={1} coeffs:={2} cm-script.m
+parallel -j 16 --joblog joblog --eta --colsep '\|' -a CM-fields-deg-8.txt magma -b label:={1} coeffs:={2} gal_label:={3} cm-script.m
 
 Use --dry-run to see what the commands would be run without actually executing
 */
 
 AttachSpec("~/github/CHIMP/CHIMP.spec");
 AttachSpec("~/github/reconstructing-g4/magma/spec");
+AttachSpec("~/github/Genus-4-RM-CM/CM/spec");
 //AttachSpec("~/github/Genus-4/magma/spec");
 //AttachSpec("~/github/Reconstruction/magma/spec");
 AttachSpec("spec");
 
 try 
   print coeffs;
-  CheckForJacobians(coeffs);
+  CheckForJacobians(label,coeffs,gal_label);
   exit 0;
 catch e
   WriteStderr(e);

@@ -681,6 +681,7 @@ intrinsic PeriodMatrixFromCMType(K::FldNum, Phi::Any, aa::RngOrdIdl, xi::FldNumE
   vprint CMExp, 1 : "Reducing period matrix...";
   tau_red := SiegelReduction(tau);
   tau_red := (tau_red + Transpose(tau_red))/2; // hack
+  vprint CMExp, 1 : "done with reduction";
 
   return tau_red;
 end intrinsic;
