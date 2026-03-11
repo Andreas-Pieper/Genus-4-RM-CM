@@ -5,11 +5,13 @@ intrinsic InitializeDataFiles() -> Any
 
   all_filename := "cm-fields-schottky-values.txt";
   jac_filename := "cm-fields-jacobians.txt";
-  for name in [all_filename, jac_filename] do
+  errors_filename := "cm-fields-errors.txt";
+  names := [all_filename, jac_filename, errors_filename];
+  for name in names do
     System(Sprintf("touch %o", name));
     Write(name, "Format: label, coeffs, CM type, ideal class rep, polarizing element, complex conjugation, absolute value of Schottky form\n");
   end for;
-  return Sprintf("Files %o and %o initialized", all_filename, jac_filename);
+  return Sprintf("Files %o initialized", Join(names, ", "));
 end intrinsic;
 
 intrinsic CheckForJacobians(label::MonStgElt, coeffs_str::MonStgElt, gal_label::MonStgElt : precred := 300, prectheta := 50, preccheck := 150) -> Any

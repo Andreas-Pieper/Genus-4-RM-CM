@@ -7,7 +7,7 @@
 
   Then run the following command in the directory ~/github/Genus-4-RM-CM/CM
 
-parallel -j 16 --joblog joblog --eta --colsep '\|' -a CM-fields-deg-8.txt magma -b label:={1} coeffs:={2} gal_label:={3} CM/cm-script.m
+parallel -j 25 --joblog joblog --eta --colsep '\|' -a CM-fields-deg-8.txt magma -b label:={1} coeffs:={2} gal_label:={3} CM/cm-script.m
 
 parallel -j 25 --joblog joblog --eta --colsep '\|' -a CM-fields-deg-8.txt --dry-run magma -b label:={1} coeffs:={2} gal_label:={3} CM/cm-script.m
 
@@ -25,6 +25,9 @@ try
   CheckForJacobians(label,coeffs,gal_label);
   exit 0;
 catch e
-  WriteStderr(e);
+  //WriteStderr(e);
+  E := Open("cm-fields-errors.txt", "a");
+  Write(E, label*"\n");
+  //Write(E, e);
   exit 1;
 end try;
