@@ -821,6 +821,7 @@ Output: Invariants of the associated genus 4 curve
 
 */
 
+// TODO: Change AlgebraizeElementsExtra bound to one given by Shimura reciprocity; see full_proc.m
 intrinsic ComputeCMCurveG4(K::FldNum, Phi::Any, aa::RngOrdIdl, xi::FldNumElt, invK::Any, s_size::FldReElt : prec := Precision(Parent(s_size))/2) -> Any
   {Input: K, Phi (CM type), aa (ideal class representative), xi (totally imaginary element giving polarization), invK (complex conjugation involution), s_size (size of Schottky value), Output: Invariants of the associated genus 4 curve}
 
