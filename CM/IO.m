@@ -173,3 +173,24 @@ intrinsic JacobianFileToArray( : filename:="../cm-fields-jacobians.txt") -> Asso
   return A;
 end intrinsic;
 
+intrinsic CompleteErrorFile(ErrorFile, CoeffsFile)
+  {}
+
+  while not eof do
+  if cnt mod 100 eq 0 then
+    printf "read in %o lines\n", cnt;
+  end if;
+    line := Gets(ErrorFile);
+    if IsEof(line) then
+      eof := true;
+      break;
+    end if;
+    spl := Split(line, "|");
+    if #spl ne 7 then
+      print "Error! Wrong number of data fields.";
+    end if;
+    // K, Phi, aa, xi, invK, sch := Explode(val);
+    label, Kpolystr, Phistr, aastr, xistr, invKstr, schstr := Explode(spl);
+    // process CM field
+
+end intrinsic;

@@ -2,6 +2,7 @@ declare verbose CM, 1;
 
 declare verbose CMExp, 2;
 
+import "~/github/reconstructing-g4/magma/rosenhain.m": FindDelta;
 
 // does full enumeration, not taking Galois action into account
 intrinsic FullEnumerationG4(f::RngUPolElt : prec := 300, exp := Infinity(), FixCMType := false) -> .
@@ -823,12 +824,18 @@ Output: Invariants of the associated genus 4 curve
 intrinsic ComputeSchottky(K::FldNum, Phi::Any, aa::RngOrdIdl, xi::FldNumElt, invK::Any, s_size::FldReElt) -> Any
   {Input: K, Phi (CM type), aa (ideal class representative), xi (totally imaginary element giving polarization), invK (complex conjugation involution), s_size (size of Schottky value), Output: Invariants of the associated genus 4 curve}
   
+  CC<I> := K`CC;
+  prec := Precision(CC);
   inf_places := InfinitePlacesExtra(K); 
   Phi_new := {phi : phi in inf_places | #[phi0 : phi0 in Phi | Abs(phi-phi0) le 10^(-25)] eq 1};
   assert #Phi_new eq 4;
   
   tau := PeriodMatrixFromCMType(K, Phi_new, aa, xi, invK);
-  return Abs(SchottkyModularForm(tau));
+  z := Matrix(CC, 4, 1, [0,0,0,0]);
+  tau_prec := MatrixAlgebra(C, Nrows(tau))!tau;
+  thetas := ThetaFlint(z, tau);
+  v0s := FindDelta(thetas : prec:=prec);
+  return ComplexField(10)!Abs(SchottkyModularForm(tau)), v0s;
 end intrinsic;
 
 // TODO: Change AlgebraizeElementsExtra bound to one given by Shimura reciprocity; see full_proc.m

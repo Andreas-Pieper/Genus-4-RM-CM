@@ -27,7 +27,9 @@ try
 catch e
   //WriteStderr(e);
   E := Open("cm-fields-errors.txt", "a");
-  Write(E, label*"\n");
+  s := Join([Sprint(el) : el in [* label, coeffs, gal_label *]], "|");
+  s := ReplaceAll(" ", "", s);
+  Write(E, s);
   //Write(E, e);
   exit 1;
 end try;
