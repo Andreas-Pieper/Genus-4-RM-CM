@@ -149,7 +149,7 @@ intrinsic SchottkyModularFormFlint(tau::AlgMatElt : prec := -1) -> Any
   
   tau_prec := MatrixAlgebra(C, Nrows(tau))!tau;
   //thetas := ThetaFlint(char, z, tau);
-  thetas := ThetaFlint(z, tau);
+  thetas := ThetaFlint(char, z, tau);
   if Type(thetas) eq MonStgElt then
     return 1;
   end if;

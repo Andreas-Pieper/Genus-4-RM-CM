@@ -820,16 +820,34 @@ Output: Invariants of the associated genus 4 curve
 5) Reconstruct curve from recognized invariants
 
 */
+intrinsic ComputeSchottky(K::FldNum, Phi::Any, aa::RngOrdIdl, xi::FldNumElt, invK::Any, s_size::FldReElt) -> Any
+  {Input: K, Phi (CM type), aa (ideal class representative), xi (totally imaginary element giving polarization), invK (complex conjugation involution), s_size (size of Schottky value), Output: Invariants of the associated genus 4 curve}
+  
+  inf_places := InfinitePlacesExtra(K); 
+  Phi_new := {phi : phi in inf_places | #[phi0 : phi0 in Phi | Abs(phi-phi0) le 10^(-25)] eq 1};
+  assert #Phi_new eq 4;
+  
+  tau := PeriodMatrixFromCMType(K, Phi_new, aa, xi, invK);
+  return Abs(SchottkyModularForm(tau));
+end intrinsic;
 
 // TODO: Change AlgebraizeElementsExtra bound to one given by Shimura reciprocity; see full_proc.m
 intrinsic ComputeCMCurveG4(K::FldNum, Phi::Any, aa::RngOrdIdl, xi::FldNumElt, invK::Any, s_size::FldReElt : prec := Precision(Parent(s_size))/2) -> Any
   {Input: K, Phi (CM type), aa (ideal class representative), xi (totally imaginary element giving polarization), invK (complex conjugation involution), s_size (size of Schottky value), Output: Invariants of the associated genus 4 curve}
+  
+  inf_places := InfinitePlacesExtra(K); 
+  Phi_new := {phi : phi in inf_places | #[phi0 : phi0 in Phi | Abs(phi-phi0) le 10^(-25)] eq 1};
+  assert #Phi_new eq 4;
+  
+  tau := PeriodMatrixFromCMType(K, Phi_new, aa, xi, invK);
 
-  tau := PeriodMatrixFromCMType(K, Phi, aa, xi, invK);
-  bound := 10^(-prec);
-  if s_size gt bound then
-    return false;
-  end if;
+  //tau := PeriodMatrixFromCMType(K, Phi, aa, xi, invK);
+
+  //bound := 10^(-prec);
+
+  //if s_size gt bound then
+  //  return false;
+  //end if;
 
   // reconstruct curve over CC
   Eqs := ReconstructCurveG4(tau : flint := true);
