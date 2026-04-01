@@ -2,7 +2,7 @@ declare verbose CM, 1;
 
 declare verbose CMExp, 2;
 
-import "~/github/reconstructing-g4/magma/rosenhain.m": FindDelta;
+//import "~/github/reconstructing-g4/magma/rosenhain.m": FindDelta;
 
 // does full enumeration, not taking Galois action into account
 intrinsic FullEnumerationG4(f::RngUPolElt : prec := 300, exp := Infinity(), FixCMType := false) -> .
@@ -198,7 +198,7 @@ CP := CartesianPower([0,1/2], 8);
 vs := [ Transpose(Matrix([[ c : c in tup ]])) : tup in CP ];
 v0s := [ ];
 for v in vs do
-    theta := thetas[IndexFromVector(3, v)];
+    theta := thetas[IndexFromVector(4, v)];
     test := (Abs(theta) lt 10^(-prectest)) and IsEvenVector(v);
     if test then
         Append(~v0s, v);
@@ -696,8 +696,9 @@ intrinsic EnumerationUpToGalois(f::RngUPolElt : exp := 8, prec := 50, precred :=
   test0, AV0, Kinfo, K0info, bbs, v0s := SingleClassFromPolynomial(f : exp := exp, prec := prec, precred := precred);
   vprint CMExp, 1 : "done calculating single solution and field information.";
   if not test0 then
-      vprint CMExp, 1 : "Only imprimitive CM types!";
-      return [], [];
+      //vprint CMExp, 1 : "Only imprimitive CM types!";
+      vprint CMExp, 1 : "No principally polarized simple abelian varieties";
+      return [];
   end if;
   Phi, aa0, xi00 := Explode(AV0);
   K, ZZK, DiffK, infsK, ClKinfo, UKinfo, invK := Explode(Kinfo); ClK, phiClK := Explode(ClKinfo); UK, phiUK := Explode(UKinfo);
@@ -832,7 +833,7 @@ intrinsic ComputeSchottky(K::FldNum, Phi::Any, aa::RngOrdIdl, xi::FldNumElt, inv
   
   tau := PeriodMatrixFromCMType(K, Phi_new, aa, xi, invK);
   z := Matrix(CC, 4, 1, [0,0,0,0]);
-  tau_prec := MatrixAlgebra(C, Nrows(tau))!tau;
+  tau_prec := MatrixAlgebra(CC, Nrows(tau))!tau;
   thetas := ThetaFlint(z, tau);
   v0s := FindDelta(thetas : prec:=prec);
   return ComplexField(10)!Abs(SchottkyModularForm(tau)), v0s;

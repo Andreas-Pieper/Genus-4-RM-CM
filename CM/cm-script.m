@@ -11,6 +11,10 @@ parallel -j 25 --joblog joblog --eta --colsep '\|' -a CM-fields-deg-8.txt magma 
 
 parallel -j 25 --joblog joblog --eta --colsep '\|' -a CM-fields-deg-8.txt --dry-run magma -b label:={1} coeffs:={2} gal_label:={3} CM/cm-script.m
 
+parallel -j 20 --joblog joblog --eta --colsep '\|' -a missing-fields.txt magma -b label:={1} coeffs:={2} gal_label:={3} CM/cm-script.m
+
+parallel -j 20 --joblog joblog --eta --colsep '\|' -a missing-fields.txt --dry-run magma -b label:={1} coeffs:={2} gal_label:={3} CM/cm-script.m
+
 Use --dry-run to see what the commands would be run without actually executing
 */
 
@@ -20,16 +24,21 @@ AttachSpec("~/github/Genus-4-RM-CM/CM/spec");
 //AttachSpec("~/github/Genus-4/magma/spec");
 //AttachSpec("~/github/Reconstruction/magma/spec");
 
+SetClassGroupBounds("GRH");
+SetVerbose("CMExp",true);
+
 try 
   print coeffs;
-  CheckForJacobians(label,coeffs,gal_label);
+  //CheckForJacobians(label,coeffs,gal_label);
+  CheckForJacobians(label,coeffs,gal_label : all_filename := "missing-fields-schottky-values.txt", jac_filename := "missing-fields-jacobians.txt", done_filename := "missing-fields-done.txt");
   exit 0;
 catch e
   //WriteStderr(e);
-  E := Open("cm-fields-errors.txt", "a");
+  //E := Open("cm-fields-errors.txt", "a");
+  E := Open("missing-fields-errors.txt", "a");
   s := Join([Sprint(el) : el in [* label, coeffs, gal_label *]], "|");
   s := ReplaceAll(" ", "", s);
-  Write(E, s);
+  Write(E, s*"\n");
   //Write(E, e);
   exit 1;
 end try;

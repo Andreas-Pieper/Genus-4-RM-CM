@@ -14,7 +14,8 @@ intrinsic InitializeDataFiles() -> Any
   return Sprintf("Files %o initialized", Join(names, ", "));
 end intrinsic;
 
-intrinsic CheckForJacobians(label::MonStgElt, coeffs_str::MonStgElt, gal_label::MonStgElt : precred := 300, prectheta := 50, preccheck := 150) -> Any
+intrinsic CheckForJacobians(label::MonStgElt, coeffs_str::MonStgElt, gal_label::MonStgElt : precred := 300, prectheta := 50, preccheck := 150, all_filename := "cm-fields-schottky-values.txt", jac_filename := "cm-fields-jacobians.txt", done_filename := "cm-fields-done.txt", special_filename:="special-fields.txt") -> Any
+  
   {}
 
   exps := Exponents();
@@ -26,9 +27,12 @@ intrinsic CheckForJacobians(label::MonStgElt, coeffs_str::MonStgElt, gal_label::
   f := R!coeffs;
   d,k := Explode(Split(gal_label,"T"));
   k := eval k;
+  if k in [13, 24] then
+    Write(done_filename, Join([label,coeffs_str,gal_label],"|"));
+    return Sprintf("Galois group 8T13 or 8T24; skipping");
+  end if;
   vals := EnumerationUpToGalois(f : exp := exps[k], prec:=precred,precred:=precred, prectheta:=prectheta);
-  all_filename := "cm-fields-schottky-values.txt";
-  jac_filename := "cm-fields-jacobians.txt";
+  Write(done_filename, Join([label,coeffs_str,gal_label],"|"));
   for val in vals do
     K, Phi, aa, xi, invK, sch := Explode(val);
     output_list := [ ];

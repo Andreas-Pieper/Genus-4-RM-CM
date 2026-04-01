@@ -173,6 +173,7 @@ intrinsic JacobianFileToArray( : filename:="../cm-fields-jacobians.txt") -> Asso
   return A;
 end intrinsic;
 
+/*
 intrinsic CompleteErrorFile(ErrorFile, CoeffsFile)
   {}
 
@@ -193,4 +194,54 @@ intrinsic CompleteErrorFile(ErrorFile, CoeffsFile)
     label, Kpolystr, Phistr, aastr, xistr, invKstr, schstr := Explode(spl);
     // process CM field
 
+end intrinsic;
+*/
+
+intrinsic GetMissingFields( : AllFieldsPath:="../CM-fields-deg-8.txt", ComputedFieldsPath:="../cm-fields-schottky-values.txt", MissingPath:="../missing_fields.txt") -> Any
+  {}
+
+  all_labels := [];
+  all_data := [];
+  file := Open(AllFieldsPath, "r");
+  line := Gets(file); // skip header
+  line := Gets(file);
+  eof := false;
+  while not eof do
+    line := Gets(file);
+    if IsEof(line) then
+      eof := true;
+      break;
+    end if;
+    spl := Split(line, "|");
+    Append(~all_labels, <spl[1], spl[2]>);
+    Append(~all_data, <spl[1], spl[2], spl[3]>);
+  end while;
+  all_labels := Set(all_labels);
+
+  computed_labels := [];
+  file := Open(ComputedFieldsPath, "r");
+  line := Gets(file); // skip header
+  line := Gets(file);
+  eof := false;
+  while not eof do
+    line := Gets(file);
+    if IsEof(line) then
+      eof := true;
+      break;
+    end if;
+    spl := Split(line, "|");
+    Append(~computed_labels, <spl[1], spl[2]>);
+  end while;
+  computed_labels := Set(computed_labels);
+  missing_labels := all_labels diff computed_labels;
+  missing_data := [el : el in all_data | <el[1], el[2]> in missing_labels];
+
+  printf "%o missing labels found\n", #missing_data;
+
+  // write to file
+  for el in missing_data do
+    s := Join([el[1], el[2], el[3]], "|");
+    Write(MissingPath, s);
+  end for;
+  return Sprintf("Data written to %o", MissingPath);
 end intrinsic;
