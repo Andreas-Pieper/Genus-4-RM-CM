@@ -687,7 +687,7 @@ intrinsic PeriodMatrixFromCMType(K::FldNum, Phi::Any, aa::RngOrdIdl, xi::FldNumE
   return tau_red;
 end intrinsic;
 
-intrinsic EnumerationUpToGalois(f::RngUPolElt : exp := 8, prec := 50, precred := 50, prectheta := 50) -> .
+intrinsic EnumerationUpToGalois(f::RngUPolElt : exp := 8, prec := 300, precred := 50, prectheta := 50) -> .
 {Finds all abelian varieties with primitive CM by the maximal order of the number field defined by f up to Galois conjugation.}
 
   // FIXME: determine bound on exponenent of quotient of group
@@ -781,6 +781,7 @@ intrinsic EnumerationUpToGalois(f::RngUPolElt : exp := 8, prec := 50, precred :=
       Phi, aa, xi := Explode(AV);
       tau_red := PeriodMatrixFromCMType(K, Phi, aa, xi, invK);
       s := SchottkyModularForm(tau_red : prec := prectheta);
+      // if value looks smallish, recompute with higher precision
       if Abs(s) lt RealField(10)!(10^(-prectheta/2)) then
         s := SchottkyModularForm(tau_red : prec := prec);
       end if;
