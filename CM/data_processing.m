@@ -1,10 +1,23 @@
+AttachSpec("~/github/CHIMP/CHIMP.spec");
+AttachSpec("~/github/reconstructing-g4/magma/spec");
+AttachSpec("~/github/Genus-4-RM-CM/CM/spec");
+//AttachSpec("~/github/Genus-4/magma/spec");
+//AttachSpec("~/github/Reconstruction/magma/spec");
+
+import "CMTypes.m" : Exponents;
+
+SetDebugOnError(true);
+SetClassGroupBounds("GRH");
+SetVerbose("CMExp",true);
+
 res_djn3 := [];
 res_djn5 := [];
 res_hyp := [];
 res_others := [];
 R<x> := PolynomialRing(Rationals());
 
-filename := "../cm-fields-jacobians.txt";
+//filename := "../cm-fields-jacobians.txt";
+filename := "../missing-fields-jacobians.txt";
 file := Open(filename, "r");
 line := Gets(file); // skip header
 line := Gets(file);
@@ -60,12 +73,18 @@ for el in res_others do
 end for;
 ParallelSort(~discs, ~res_others);
 
-
-for spl in res_others do 
+print "Checking possible interesting examples at higher precision";
+printf "%o examples to check", #res_others;
+interesting := [];
+//for j->spl in [res_djn3[1]] do 
+for i->spl in res_others do 
     label, Kpolystr, Phistr, aastr, xistr, invKstr, schstr := Explode(spl);
-    label;
+    if j mod 100 eq 0 then
+      printf "%o examples checked", j;
+    end if;
+    print label;
     // process CM field
-    prec := 2000;
+    prec := 5000;
     Kpoly := eval Kpolystr;
     K<nu> := NumberFieldExtra(Polynomial(Kpoly) : prec := prec);
     inf_places := InfinitePlacesExtra(K); 
@@ -90,4 +109,12 @@ for spl in res_others do
     invK := hom< K -> K | invKelt >;
     data := [* K, Kpoly, aa, xi, invK, sch *];
     RealField(20)!ComputeSchottky(K, Phi, aa, xi, invK, sch);
+    sch_high := ComputeSchottky(K, Phi, aa, xi, invK, sch);
+    if Abs(sch_high) lt 10^(-prec/2) then
+      print "---------------------------";
+      print "Interesting example found!";
+      print label;
+      print "---------------------------";
+      Append(~interesting,spl);
+    end if;
 end for;

@@ -836,7 +836,7 @@ intrinsic ComputeSchottky(K::FldNum, Phi::Any, aa::RngOrdIdl, xi::FldNumElt, inv
   z := Matrix(CC, 4, 1, [0,0,0,0]);
   tau_prec := MatrixAlgebra(CC, Nrows(tau))!tau;
   thetas := ThetaFlint(z, tau);
-  v0s := FindDelta(thetas : prec:=prec);
+  v0s := FindDelta(thetas : prectest:=prec);
   return ComplexField(10)!Abs(SchottkyModularForm(tau)), v0s;
 end intrinsic;
 
